@@ -1,0 +1,17 @@
+{
+  "name": "equitymouse-backend",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Node.js + Express backend for EquityMouse",
+  "main": "src/server.js",
+  "scripts": {
+    "dev": "node --watch src/server.js",
+    "start": "node src/server.js"
+  },
+  "dependencies": {
+    "axios": "^1.9.0",
+    "cheerio": "^1.1.0",
+    "cors": "^2.8.5",
+    "express": "^4.21.2"
+  }
+}

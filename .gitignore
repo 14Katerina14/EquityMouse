@@ -1,0 +1,52 @@
+# OS / editor
+.DS_Store
+Thumbs.db
+desktop.ini
+.idea/
+.vscode/
+
+# Node / Expo
+node_modules/
+frontend/node_modules/
+backend/node_modules/
+.expo/
+frontend/.expo/
+dist/
+build/
+
+# Environment / secrets
+.env
+.env.*
+!.env.example
+frontend/.env
+frontend/.env.*
+!frontend/.env.example
+backend/.env
+backend/.env.*
+!backend/.env.example
+
+# Local scraping source configuration
+backend/src/config/scrapingSources.local.js
+
+# Logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# Runtime / temp
+tmp/
+temp/
+*.tmp
+*.cache
+
+# Coverage / test output
+coverage/
+.nyc_output/
+
+# React Native / Metro
+frontend/.metro-health-check*
+
+# Misc
+*.local
