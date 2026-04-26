@@ -240,15 +240,87 @@ export const ETF_METRICS: MetricDefinition[] = [
   },
 ];
 
+export const METAL_METRICS: MetricDefinition[] = [
+  {
+    id: "price-oz",
+    label: "Price/Oz",
+    value: "$4,816",
+    aliases: ["price ounce", "price per ounce", "spot price", "oz price"],
+    title: "Price Per Ounce",
+    definition: "Shows the current quoted price of the metal for one troy ounce.",
+    formula: "Current spot or market reference price per ounce",
+    interpretation: "This is the cleanest reference point for comparing where gold, silver, or palladium trade right now.",
+    goodBad: "There is no universally good or bad level by itself. It matters more versus recent history, inflation backdrop, and demand conditions.",
+    sectors: "Most useful for precious metals, commodity ETFs, miners, and macro-focused research.",
+    warning: "Price per ounce alone says nothing about whether the metal is cheap or expensive relative to history or real interest rates.",
+  },
+  {
+    id: "market-cap",
+    label: "Market Cap",
+    value: "$24.1T",
+    aliases: ["market cap", "market value", "metal market cap"],
+    title: "Estimated Metal Market Cap",
+    definition: "Estimates the total value of all above-ground supply of the metal at the current market price.",
+    formula: "Estimated above-ground supply x current price per ounce",
+    interpretation: "A larger market cap usually means a deeper, more established global market with broader use and stronger liquidity.",
+    goodBad: "Neither high nor low is automatically better. It helps compare the scale of metals rather than their near-term attractiveness.",
+    sectors: "Useful when comparing precious metals, commodity funds, and macro allocation ideas.",
+    warning: "This is an estimate, not a company-style market cap. Supply assumptions can change and should not be treated as exact.",
+  },
+  {
+    id: "estimated-supply",
+    label: "Est. Supply",
+    value: "216,265 metric tonnes",
+    aliases: ["estimated supply", "above ground supply", "mined supply", "supply"],
+    title: "Estimated Above-Ground or Mined Supply",
+    definition: "Shows the estimated amount of the metal that exists above ground or has been mined so far.",
+    formula: "Published supply estimate from industry or reference sources",
+    interpretation: "This helps explain why one metal has a much larger or smaller total market value than another.",
+    goodBad: "Neither high nor low is automatically better. It is a scale metric that helps you understand scarcity and total supply context.",
+    sectors: "Useful for precious metals, miners, commodity allocators, and macro comparisons.",
+    warning: "Supply estimates are not exact. Different sources may use different assumptions, methodologies, and update schedules.",
+  },
+  {
+    id: "estimate-basis",
+    label: "Estimate Basis",
+    value: "World Gold Council (2025)",
+    aliases: ["estimate basis", "source basis", "supply source", "reference year"],
+    title: "Estimate Basis or Reference Year",
+    definition: "Shows the source or reference year behind the supply estimate used for the metal market-cap calculation.",
+    formula: "Published source label or year attached to the underlying supply estimate",
+    interpretation: "This tells you how fresh or dated the supply estimate is and gives context for how reliable the market-cap estimate may be.",
+    goodBad: "More recent and clearly sourced estimates are generally more trustworthy than vague or outdated ones.",
+    sectors: "Useful when comparing precious metals where supply estimation methods can differ materially.",
+    warning: "This is supporting context, not a valuation metric by itself. Use it to judge data quality, not to make a buy or sell call alone.",
+  },
+];
+
 export const AVAILABLE_METRICS: MetricDefinition[] = STOCK_METRICS;
 
 export const DEFAULT_METRIC_IDS = ["pe", "roe", "debt-equity"];
 export const DEFAULT_ETF_METRIC_IDS = ["pe", "expense-ratio", "top10-concentration"];
+export const DEFAULT_METAL_METRIC_IDS = ["price-oz", "market-cap", "estimated-supply"];
 
 export function getAvailableMetricsByCategory(category: AssetCategory): MetricDefinition[] {
-  return category === "etfs" ? ETF_METRICS : STOCK_METRICS;
+  if (category === "etfs") {
+    return ETF_METRICS;
+  }
+
+  if (category === "metals") {
+    return METAL_METRICS;
+  }
+
+  return STOCK_METRICS;
 }
 
 export function getDefaultMetricIdsByCategory(category: AssetCategory): string[] {
-  return category === "etfs" ? DEFAULT_ETF_METRIC_IDS : DEFAULT_METRIC_IDS;
+  if (category === "etfs") {
+    return DEFAULT_ETF_METRIC_IDS;
+  }
+
+  if (category === "metals") {
+    return DEFAULT_METAL_METRIC_IDS;
+  }
+
+  return DEFAULT_METRIC_IDS;
 }

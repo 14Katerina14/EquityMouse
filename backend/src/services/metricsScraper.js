@@ -70,6 +70,44 @@ function buildMetricPayload(config, values) {
   };
 }
 
+function extractCommodityPrice(text, commodityName) {
+  const escapedName = commodityName.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+  const directPattern = new RegExp(`current ${escapedName} price \\(\\$([0-9]{1,3}(?:,[0-9]{3})*(?:\\.[0-9]+)?) per ounce\\)`, "i");
+  const directMatch = text.match(directPattern);
+
+  if (directMatch) {
+    return `$${directMatch[1]}`;
+  }
+
+  const fallbackMatch = text.match(/\$([0-9]{1,3}(?:,[0-9]{3})*(?:\.[0-9]+)?) per ounce/i);
+  return fallbackMatch ? `$${fallbackMatch[1]}` : null;
+}
+
+function extractCommoditySupply(text, commodityName) {
+  if (commodityName === "gold" || commodityName === "silver") {
+    const match = text.match(/estimated to (?:be around|have been mined is)\s+([0-9]{1,3}(?:,[0-9]{3})*(?:\.[0-9]+)?)\s+metric tonnes/i);
+    return match ? `${match[1]} metric tonnes` : null;
+  }
+
+  const ouncesMatch = text.match(/around\s+([0-9]{1,3}(?:,[0-9]{3})*(?:\.[0-9]+)?)\s+ounces of palladium have been mined/i);
+  return ouncesMatch ? `${ouncesMatch[1]} ounces` : null;
+}
+
+function extractCommodityEstimateBasis(text, commodityName) {
+  if (commodityName === "gold") {
+    const match = text.match(/World Gold Council\s*\(([^)]+)\)/i);
+    return match ? match[1] : "World Gold Council";
+  }
+
+  if (commodityName === "silver") {
+    const match = text.match(/\((CPM Group Silver Yearbook\s+[0-9]{4})\)/i);
+    return match ? match[1] : "CPM Group";
+  }
+
+  const palladiumMatch = text.match(/as of\s+([0-9]{4})\s+around/i);
+  return palladiumMatch ? palladiumMatch[1] : "Estimated";
+}
+
 function parseStockStatistics(html, config) {
   const text = normalizeText(html);
 
@@ -102,6 +140,17 @@ function parseEtfOverview(html, config) {
   });
 }
 
+function parseCommodityOverview(html, config) {
+  const text = normalizeText(html);
+
+  return buildMetricPayload(config, {
+    "price-oz": extractCommodityPrice(text, config.commodityName),
+    "market-cap": extractEtfMetric(text, ["Market cap", "Marketcap"]),
+    "estimated-supply": extractCommoditySupply(text, config.commodityName),
+    "estimate-basis": extractCommodityEstimateBasis(text, config.commodityName),
+  });
+}
+
 async function fetchMetrics(symbol) {
   const config = SYMBOL_METRICS_CONFIG[symbol];
 
@@ -120,6 +169,10 @@ async function fetchMetrics(symbol) {
 
   if (config.parser === "stockStatistics") {
     return parseStockStatistics(response.data, config);
+  }
+
+  if (config.parser === "commodityOverview") {
+    return parseCommodityOverview(response.data, config);
   }
 
   return parseEtfOverview(response.data, config);

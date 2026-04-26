@@ -96,6 +96,30 @@ const METRIC_SOURCES = {
     url: "https://example.com/path-to-vgt-metrics-page",
     parser: "etfOverview",
   },
+  GOLD: {
+    symbol: "GOLD",
+    type: "metal",
+    source: "scraped-web",
+    url: "https://example.com/path-to-gold-metrics-page",
+    parser: "commodityOverview",
+    commodityName: "gold",
+  },
+  SILVER: {
+    symbol: "SILVER",
+    type: "metal",
+    source: "scraped-web",
+    url: "https://example.com/path-to-silver-metrics-page",
+    parser: "commodityOverview",
+    commodityName: "silver",
+  },
+  PALLADIUM: {
+    symbol: "PALLADIUM",
+    type: "metal",
+    source: "scraped-web",
+    url: "https://example.com/path-to-palladium-metrics-page",
+    parser: "commodityOverview",
+    commodityName: "palladium",
+  },
 };
 
 const HOLDER_SOURCES = {

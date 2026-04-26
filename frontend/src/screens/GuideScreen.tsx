@@ -1,6 +1,6 @@
 import React from "react";
 import { SafeAreaView, ScrollView, StatusBar, Text, TouchableOpacity, View } from "react-native";
-import { ETF_METRICS, STOCK_METRICS } from "../data/metrics";
+import { ETF_METRICS, METAL_METRICS, STOCK_METRICS } from "../data/metrics";
 import { APP_USAGE_GUIDE, GUIDEBOOK_TOPICS, INVESTING_GUIDE, STOCK_JUDGMENT_GUIDE } from "../data/guidebook";
 import { styles } from "../styles/appStyles";
 
@@ -63,6 +63,18 @@ export function GuideScreen({ onBack }: GuideScreenProps) {
         <View style={styles.sectionBlock}>
           <Text style={styles.detailSectionTitle}>ETF Metric Cheat Sheet</Text>
           {ETF_METRICS.map((metric) => (
+            <View key={metric.id} style={styles.guideCard}>
+              <Text style={styles.guideCardTitle}>{metric.label}</Text>
+              <Text style={styles.guideCardBody}>{metric.definition}</Text>
+              <Text style={styles.guideGuideLabel}>Formula</Text>
+              <Text style={styles.guideCardBody}>{metric.formula}</Text>
+            </View>
+          ))}
+        </View>
+
+        <View style={styles.sectionBlock}>
+          <Text style={styles.detailSectionTitle}>Precious Metal Metric Cheat Sheet</Text>
+          {METAL_METRICS.map((metric) => (
             <View key={metric.id} style={styles.guideCard}>
               <Text style={styles.guideCardTitle}>{metric.label}</Text>
               <Text style={styles.guideCardBody}>{metric.definition}</Text>
