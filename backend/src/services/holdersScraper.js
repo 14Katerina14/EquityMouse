@@ -249,6 +249,33 @@ function buildFallbackStockPayload(symbol, snapshot) {
   };
 }
 
+function formatPublishedDate(input) {
+  if (!input) {
+    return "Latest filing";
+  }
+
+  const date = new Date(input);
+
+  if (Number.isNaN(date.getTime())) {
+    return "Latest filing";
+  }
+
+  return date.toLocaleDateString("en-US", {
+    month: "short",
+    day: "numeric",
+    year: "numeric",
+  });
+}
+
+function normalizeInstitutionName(name) {
+  return name
+    .replace(/\bBlackrock\b/gi, "BlackRock")
+    .replace(/\bJpmorgan\b/gi, "JPMorgan")
+    .replace(/\bBank Of America\b/gi, "Bank of America")
+    .replace(/\bSsga\b/gi, "SSGA")
+    .trim();
+}
+
 function parseMotleyFoolInstitutions(html, config) {
   const text = normalizeText(html);
   const sectionMatch = text.match(/### Institutions\s+(.+?)\s+About the Author/i);
@@ -329,6 +356,148 @@ function parseCoincodexInstitutional(html, config) {
     },
     "scraped-web"
   );
+}
+
+function parseCoincodexInstitutionalGeneric(html, config) {
+  const $ = cheerio.load(html);
+  const heading = $("h3")
+    .filter((_, element) => $(element).text().toLowerCase().includes("top 10 institutional owners"))
+    .first();
+
+  if (!heading.length) {
+    throw new Error("Could not find Top 10 institutional owners heading in CoinCodex page");
+  }
+
+  const table = heading.nextAll("table").first();
+
+  if (!table.length) {
+    throw new Error("Could not find institutional owners table in CoinCodex page");
+  }
+
+  const holders = [];
+
+  table.find("tbody tr").each((_, row) => {
+    const cells = $(row)
+      .find("td")
+      .map((__, cell) => $(cell).text().replace(/\s+/g, " ").trim())
+      .get();
+
+    if (cells.length >= 4 && /%$/.test(cells[1])) {
+      holders.push({
+        name: cells[0],
+        stake: Number(cells[1].replace("%", "")),
+        sharesHeld: cells[2],
+        reportedDate: "Latest filing",
+        valueThousands: cells[3],
+      });
+    }
+  });
+
+  if (holders.length === 0) {
+    throw new Error("Could not parse institutional holders rows from CoinCodex table");
+  }
+
+  const dateText = heading
+    .nextAll("p")
+    .filter((_, element) => $(element).text().toLowerCase().includes("data collected on"))
+    .first()
+    .text()
+    .replace(/\s+/g, " ")
+    .trim();
+
+  const dateMatch = dateText.match(/Data collected on\s+(.+?)\./i);
+  const asOf = dateMatch ? dateMatch[1].trim() : "Latest filing";
+  const normalizedHolders = holders.map((holder) => ({
+    ...holder,
+    reportedDate: asOf,
+  }));
+
+  return buildPayload(
+    config,
+    {
+      asOf,
+      totalHolders: normalizedHolders.length,
+      holders: normalizedHolders,
+    },
+    "scraped-web"
+  );
+}
+
+function parseRankredInstitutionalTable(html, config) {
+  const $ = cheerio.load(html);
+  const heading = $("h4")
+    .filter((_, element) => $(element).text().toLowerCase().includes("institutional investors"))
+    .first();
+
+  if (!heading.length) {
+    throw new Error("Could not find institutional investors heading in RankRed page");
+  }
+
+  const table = heading.nextAll("table").first();
+
+  if (!table.length) {
+    throw new Error("Could not find institutional investors table in RankRed page");
+  }
+
+  const holders = [];
+
+  table.find("tr").slice(1).each((_, row) => {
+    const cells = $(row)
+      .find("td")
+      .map((__, cell) => $(cell).text().replace(/\s+/g, " ").trim())
+      .get();
+
+    if (cells.length < 2) {
+      return;
+    }
+
+    const details = cells[1];
+    const firstSlice = details.split("/")[0].trim();
+    const stakeMatch = firstSlice.match(/\(([0-9]+(?:\.[0-9]+)?)%\)/);
+    const sharesHeld = firstSlice.replace(/\s*\([0-9]+(?:\.[0-9]+)?%\)\s*$/, "").trim();
+
+    if (!stakeMatch || !sharesHeld) {
+      return;
+    }
+
+    holders.push({
+      name: normalizeInstitutionName(cells[0]),
+      stake: Number(stakeMatch[1]),
+      sharesHeld,
+      reportedDate: "Latest filing",
+      valueThousands: "n/a",
+    });
+  });
+
+  if (holders.length === 0) {
+    throw new Error("Could not parse institutional holders rows from RankRed table");
+  }
+
+  const bodyText = $("body").text().replace(/\s+/g, " ").trim();
+  const totalHoldersMatch = bodyText.match(/more than\s+([0-9,]+)\s+institutional investors/i);
+  const publishedAt =
+    $('meta[property="article:modified_time"]').attr("content") ||
+    $('meta[property="article:published_time"]').attr("content");
+  const asOf = formatPublishedDate(publishedAt);
+  const normalizedHolders = holders.slice(0, 10).map((holder) => ({
+    ...holder,
+    reportedDate: asOf,
+  }));
+
+  return {
+    symbol: config.symbol,
+    type: config.type,
+    source: "scraped-web",
+    scrapedAt: new Date().toISOString(),
+    snapshot: {
+      asOf,
+      totalHolders: totalHoldersMatch ? Number(totalHoldersMatch[1].replace(/,/g, "")) : normalizedHolders.length,
+      top10Concentration: Number(
+        normalizedHolders.reduce((sum, holder) => sum + holder.stake, 0).toFixed(2)
+      ),
+    },
+    holders: normalizedHolders,
+  };
 }
 
 function parseTheStreetInstitutions(html, config) {
@@ -443,6 +612,14 @@ function parseHolders(html, config) {
 
   if (config.parser === "institutionalArticleListC") {
     return parseTheStreetInstitutions(html, config);
+  }
+
+  if (config.parser === "institutionalArticleTableC") {
+    return parseCoincodexInstitutionalGeneric(html, config);
+  }
+
+  if (config.parser === "rankredInstitutionalTable") {
+    return parseRankredInstitutionalTable(html, config);
   }
 
   if (config.parser === "fundConstituentsTable") {

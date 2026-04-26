@@ -29,6 +29,11 @@ backend/.env.*
 backend/src/config/scrapingSources.local.js
 backend/src/config/private/
 backend/src/config/private/*.js
+backend/src/config/private/*.json
+backend/src/config/private/*.ts
+backend/src/config/private/**/*.js
+backend/src/config/private/**/*.json
+backend/src/config/private/**/*.ts
 backend/src/config/private/scrapingSources.private.js
 backend/src/config/*.private.*
 
