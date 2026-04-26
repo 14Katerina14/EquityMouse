@@ -43,9 +43,28 @@ export const GUIDEBOOK_TOPICS = [
   },
 ];
 
+export const APP_USAGE_GUIDE = [
+  "Start on the Home page and switch between Trending Stocks, Precious Metals, and Popular ETFs with the category chips.",
+  "Tap any asset card to open its detail page. There you can review the live price, the performance chart, the metrics section, and ETF holdings when they exist.",
+  "Use the chart range buttons to compare short-term and long-term behavior instead of judging the asset from one day alone.",
+  "In the Metrics section, keep only the indicators that matter to you. Remove cards with the x button and add new ones through the search bar.",
+  "Tap the info icon on each metric to understand what it means, how it is calculated, and when it is useful before relying on it.",
+  "Use the Guidebook whenever a term, metric, or fund type feels unclear. The app is meant to help you learn while you research, not just show raw numbers.",
+];
+
+export const STOCK_JUDGMENT_GUIDE = [
+  "Start with business quality. Strong ROE, ROIC, healthy margins, and positive free cash flow often point to a stronger company than one with weak profitability.",
+  "Then check valuation. P/E, P/S, P/B, and PEG matter more when compared against peers, the company's own history, and the sector average.",
+  "Review financial health next. Debt/Equity helps you judge whether the company is growing from real strength or from too much leverage.",
+  "Do not trust one metric alone. A stock can look cheap and still be risky if margins are weak, debt is high, or cash flow is unstable.",
+  "For ETFs, use Top Holdings to understand what you are really buying. A broad ETF can still be heavily driven by a few giant companies.",
+  "Treat insider, institutional, and fundamentals data as clues, not guarantees. Good judgment comes from combining signals, not chasing one impressive number.",
+  "A stock usually looks stronger when valuation is reasonable, profitability is solid, balance-sheet risk is controlled, and the business keeps generating cash.",
+];
+
 export const INVESTING_GUIDE = [
   "Start with understanding the business before looking at the chart.",
-  "Compare valuation metrics against the company’s peers and its own history.",
+  "Compare valuation metrics against the company's peers and its own history.",
   "Do not rely on one metric alone. Always combine valuation, profitability, leverage, and cash flow.",
   "Use diversification so one bad decision does not damage the whole portfolio.",
   "Be careful with leverage, hype, and very fast price moves that are not supported by fundamentals.",

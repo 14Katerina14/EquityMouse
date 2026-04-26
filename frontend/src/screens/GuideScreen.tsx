@@ -1,7 +1,7 @@
 import React from "react";
 import { SafeAreaView, ScrollView, StatusBar, Text, TouchableOpacity, View } from "react-native";
 import { AVAILABLE_METRICS } from "../data/metrics";
-import { GUIDEBOOK_TOPICS, INVESTING_GUIDE } from "../data/guidebook";
+import { APP_USAGE_GUIDE, GUIDEBOOK_TOPICS, INVESTING_GUIDE, STOCK_JUDGMENT_GUIDE } from "../data/guidebook";
 import { styles } from "../styles/appStyles";
 
 type GuideScreenProps = {
@@ -37,6 +37,18 @@ export function GuideScreen({ onBack }: GuideScreenProps) {
         </View>
 
         <View style={styles.sectionBlock}>
+          <Text style={styles.detailSectionTitle}>How To Use The App</Text>
+          <View style={styles.guideCard}>
+            {APP_USAGE_GUIDE.map((tip, index) => (
+              <View key={`app-tip-${index}`} style={styles.guideTipRow}>
+                <Text style={styles.guideTipIndex}>{index + 1}</Text>
+                <Text style={styles.guideTipText}>{tip}</Text>
+              </View>
+            ))}
+          </View>
+        </View>
+
+        <View style={styles.sectionBlock}>
           <Text style={styles.detailSectionTitle}>Metric Cheat Sheet</Text>
           {AVAILABLE_METRICS.map((metric) => (
             <View key={metric.id} style={styles.guideCard}>
@@ -46,6 +58,18 @@ export function GuideScreen({ onBack }: GuideScreenProps) {
               <Text style={styles.guideCardBody}>{metric.formula}</Text>
             </View>
           ))}
+        </View>
+
+        <View style={styles.sectionBlock}>
+          <Text style={styles.detailSectionTitle}>How To Judge A Stock</Text>
+          <View style={styles.guideCard}>
+            {STOCK_JUDGMENT_GUIDE.map((tip, index) => (
+              <View key={`judgment-tip-${index}`} style={styles.guideTipRow}>
+                <Text style={styles.guideTipIndex}>{index + 1}</Text>
+                <Text style={styles.guideTipText}>{tip}</Text>
+              </View>
+            ))}
+          </View>
         </View>
 
         <View style={styles.sectionBlock}>
