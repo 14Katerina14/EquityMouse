@@ -117,7 +117,7 @@ export async function fetchHomeQuotes() {
   };
 }
 
-export async function fetchBackendQuoteAsset(symbol: string) {
+export async function fetchBackendQuoteAsset(symbol: string, fallbackAsset: Asset) {
   const baseUrl = getBackendBaseUrl();
   const response = await fetch(`${baseUrl}/api/quotes/${encodeURIComponent(symbol.toUpperCase())}`);
 
@@ -126,11 +126,5 @@ export async function fetchBackendQuoteAsset(symbol: string) {
   }
 
   const quote = (await response.json()) as BackendQuote;
-  const fallbackAsset = ASSETS.find((asset) => asset.ticker.toUpperCase() === symbol.toUpperCase());
-
-  if (!fallbackAsset) {
-    throw new Error(`No fallback asset configured for symbol ${symbol}`);
-  }
-
   return mapQuoteOntoAsset(fallbackAsset, quote);
 }

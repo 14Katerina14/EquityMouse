@@ -4,6 +4,7 @@ const cors = require("cors");
 const quoteRoutes = require("./routes/quotes");
 const holdersRoutes = require("./routes/holders");
 const metricsRoutes = require("./routes/metrics");
+const assetRoutes = require("./routes/assets");
 
 const app = express();
 
@@ -21,6 +22,7 @@ app.get("/health", (_req, res) => {
 app.use("/api/quotes", quoteRoutes);
 app.use("/api/holders", holdersRoutes);
 app.use("/api/metrics", metricsRoutes);
+app.use("/api/assets", assetRoutes);
 
 app.use((err, _req, res, _next) => {
   console.error(err);

@@ -13,6 +13,13 @@ export type Asset = {
   category: AssetCategory;
 };
 
+export type AssetLookup = {
+  ticker: string;
+  company: string;
+  tag: string;
+  category: AssetCategory;
+};
+
 export type Screen = "login" | "home" | "detail" | "guide";
 
 export type ChartRange = "1D" | "1W" | "1M" | "6M" | "1Y" | "5Y";

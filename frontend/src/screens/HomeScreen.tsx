@@ -2,10 +2,11 @@ import React, { useEffect, useMemo, useState } from "react";
 import { SafeAreaView, ScrollView, StatusBar, Text, TextInput, TouchableOpacity, View } from "react-native";
 import { MouseBankerLogo } from "../components/MouseBankerLogo";
 import { ASSETS } from "../data/assets";
+import { searchBackendAssets } from "../services/backendAssets";
 import { fetchHomeQuotes } from "../services/backendQuotes";
 import { styles } from "../styles/appStyles";
 import { COLORS } from "../theme/colors";
-import { Asset, AssetCategory } from "../types";
+import { Asset, AssetCategory, AssetLookup } from "../types";
 
 type HomeScreenProps = {
   onOpenDetail: (asset: Asset) => void;
@@ -16,6 +17,8 @@ export function HomeScreen({ onOpenDetail, onOpenGuide }: HomeScreenProps) {
   const [search, setSearch] = useState("");
   const [activeCategory, setActiveCategory] = useState<AssetCategory>("stocks");
   const [assets, setAssets] = useState<Asset[]>(ASSETS);
+  const [searchResults, setSearchResults] = useState<AssetLookup[]>([]);
+  const [isSearchLoading, setIsSearchLoading] = useState(false);
 
   useEffect(() => {
     let mounted = true;
@@ -41,6 +44,44 @@ export function HomeScreen({ onOpenDetail, onOpenGuide }: HomeScreenProps) {
     };
   }, []);
 
+  useEffect(() => {
+    const query = search.trim();
+
+    if (!query) {
+      setSearchResults([]);
+      setIsSearchLoading(false);
+      return;
+    }
+
+    let cancelled = false;
+    setIsSearchLoading(true);
+
+    const timeoutId = setTimeout(() => {
+      searchBackendAssets(query)
+        .then((results) => {
+          if (cancelled) {
+            return;
+          }
+
+          setSearchResults(results);
+          setIsSearchLoading(false);
+        })
+        .catch(() => {
+          if (cancelled) {
+            return;
+          }
+
+          setSearchResults([]);
+          setIsSearchLoading(false);
+        });
+    }, 220);
+
+    return () => {
+      cancelled = true;
+      clearTimeout(timeoutId);
+    };
+  }, [search]);
+
   const filteredAssets = useMemo(() => {
     const query = search.trim().toLowerCase();
     return assets.filter((asset) => {
@@ -55,12 +96,30 @@ export function HomeScreen({ onOpenDetail, onOpenGuide }: HomeScreenProps) {
     });
   }, [activeCategory, assets, search]);
 
+  const isSearchMode = search.trim().length > 0;
+  const filteredSearchResults = useMemo(() => {
+    return searchResults.filter((asset) => asset.category === activeCategory);
+  }, [activeCategory, searchResults]);
+
   const sectionTitle =
-    activeCategory === "stocks"
+    isSearchMode
+      ? "Search Results"
+      : activeCategory === "stocks"
       ? "Trending Stocks"
       : activeCategory === "metals"
         ? "Precious Metals"
         : "Popular ETFs";
+
+  const buildLookupAsset = (lookup: AssetLookup): Asset => ({
+    ticker: lookup.ticker,
+    company: lookup.company,
+    tag: lookup.tag,
+    category: lookup.category,
+    price: "--",
+    move: "--",
+    changeValue: "--",
+    trend: "flat",
+  });
 
   return (
     <SafeAreaView style={styles.safeArea}>
@@ -133,7 +192,41 @@ export function HomeScreen({ onOpenDetail, onOpenGuide }: HomeScreenProps) {
           <Text style={styles.sectionTitle}>{sectionTitle}</Text>
         </View>
 
-        {filteredAssets.map((asset) => {
+        {isSearchMode ? (
+          <View style={styles.searchResultsWrap}>
+            {isSearchLoading ? <Text style={styles.detailSubtext}>Searching more supported assets...</Text> : null}
+
+            {!isSearchLoading && filteredSearchResults.length === 0 ? (
+              <Text style={styles.detailSubtext}>No supported assets matched this search yet.</Text>
+            ) : null}
+
+            {filteredSearchResults.map((asset) => (
+              <TouchableOpacity
+                key={`search-${asset.ticker}`}
+                style={styles.searchResultCard}
+                activeOpacity={0.88}
+                onPress={() => onOpenDetail(buildLookupAsset(asset))}
+              >
+                <View style={styles.searchResultTopRow}>
+                  <View>
+                    <Text style={styles.searchResultTicker}>{asset.ticker}</Text>
+                    <Text style={styles.searchResultCompany}>{asset.company}</Text>
+                  </View>
+                  <View style={styles.assetTag}>
+                    <Text style={styles.assetTagText}>{asset.tag}</Text>
+                  </View>
+                </View>
+                <View style={styles.searchResultBottomRow}>
+                  <Text style={styles.searchResultMeta}>
+                    {asset.category === "stocks" ? "Stock" : asset.category === "etfs" ? "ETF" : "Metal"}
+                  </Text>
+                  <Text style={styles.searchResultHint}>Open detail to load live data</Text>
+                </View>
+              </TouchableOpacity>
+            ))}
+          </View>
+        ) : (
+          filteredAssets.map((asset) => {
           const moveColor = asset.trend === "down" ? COLORS.danger : COLORS.success;
 
           return (
@@ -161,7 +254,7 @@ export function HomeScreen({ onOpenDetail, onOpenGuide }: HomeScreenProps) {
               </View>
             </TouchableOpacity>
           );
-        })}
+        }))}
       </ScrollView>
     </SafeAreaView>
   );

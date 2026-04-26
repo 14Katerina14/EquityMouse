@@ -123,7 +123,7 @@ export async function fetchSpyMarketData(): Promise<MarketDataResult> {
   let backendAsset: Asset | null = null;
 
   try {
-    backendAsset = await fetchBackendQuoteAsset("SPY");
+    backendAsset = await fetchBackendQuoteAsset("SPY", SPY_FALLBACK);
   } catch {
     backendAsset = null;
   }

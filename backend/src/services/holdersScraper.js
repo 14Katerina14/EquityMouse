@@ -6,54 +6,162 @@ const USER_AGENT =
   "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/135.0.0.0 Safari/537.36";
 const HOLDERS_CACHE_MS = 5 * 60 * 1000;
 
-const SUPPORTED_HOLDER_SYMBOLS = Object.keys(HOLDER_SOURCES);
-const cache = new Map();
+function buildFallbackInstitutionalSnapshot(asOf, entries) {
+  return {
+    asOf,
+    totalHolders: entries.length,
+    holders: entries,
+  };
+}
 
 const FALLBACK_HOLDERS = {
-  TSLA: {
-    asOf: "Mar 20, 2026",
-    totalHolders: 5,
-    holders: [
-      { name: "The Vanguard Group, Inc.", stake: 7.59, sharesHeld: "252.39M", reportedDate: "Mar 20, 2026", valueThousands: "n/a" },
-      { name: "BlackRock, Inc.", stake: 6.22, sharesHeld: "206.74M", reportedDate: "Mar 20, 2026", valueThousands: "n/a" },
-      { name: "State Street", stake: 3.5, sharesHeld: "113.76M", reportedDate: "Mar 20, 2026", valueThousands: "n/a" },
-      { name: "Geode Capital Management", stake: 1.96, sharesHeld: "65.33M", reportedDate: "Mar 20, 2026", valueThousands: "n/a" },
-      { name: "Capital World Investors", stake: 1.32, sharesHeld: "44.04M", reportedDate: "Mar 20, 2026", valueThousands: "n/a" },
-    ],
-  },
-  AAPL: {
-    asOf: "Jan 13, 2026",
-    totalHolders: 10,
-    holders: [
-      { name: "Vanguard", stake: 9.52, sharesHeld: "1.40B", reportedDate: "Jan 13, 2026", valueThousands: "$364B" },
-      { name: "BlackRock", stake: 7.8, sharesHeld: "1.15B", reportedDate: "Jan 13, 2026", valueThousands: "$298B" },
-      { name: "State Street", stake: 4.07, sharesHeld: "598M", reportedDate: "Jan 13, 2026", valueThousands: "$155B" },
-      { name: "JP Morgan Chase", stake: 3.22, sharesHeld: "473M", reportedDate: "Jan 13, 2026", valueThousands: "$123B" },
-      { name: "Geode Capital Management", stake: 2.42, sharesHeld: "356M", reportedDate: "Jan 13, 2026", valueThousands: "$93B" },
-      { name: "FMR", stake: 2.06, sharesHeld: "303M", reportedDate: "Jan 13, 2026", valueThousands: "$72B" },
-      { name: "Berkshire Hathaway", stake: 1.62, sharesHeld: "238M", reportedDate: "Jan 13, 2026", valueThousands: "$62B" },
-      { name: "Morgan Stanley", stake: 1.56, sharesHeld: "229M", reportedDate: "Jan 13, 2026", valueThousands: "$60B" },
-      { name: "T. Rowe Price", stake: 1.45, sharesHeld: "213M", reportedDate: "Jan 13, 2026", valueThousands: "$55B" },
-      { name: "Norges Bank", stake: 1.29, sharesHeld: "190M", reportedDate: "Jan 13, 2026", valueThousands: "$49B" },
-    ],
-  },
-  NVDA: {
-    asOf: "Mar 19, 2026",
-    totalHolders: 10,
-    holders: [
-      { name: "Vanguard Group", stake: 9.33, sharesHeld: "2.27B", reportedDate: "Mar 19, 2026", valueThousands: "n/a" },
-      { name: "BlackRock", stake: 7.98, sharesHeld: "1.94B", reportedDate: "Mar 19, 2026", valueThousands: "n/a" },
-      { name: "State Street", stake: 4.08, sharesHeld: "991.48M", reportedDate: "Mar 19, 2026", valueThousands: "n/a" },
-      { name: "FMR", stake: 3.65, sharesHeld: "971.06M", reportedDate: "Mar 19, 2026", valueThousands: "n/a" },
-      { name: "Geode Capital Management", stake: 2.42, sharesHeld: "588.8M", reportedDate: "Mar 19, 2026", valueThousands: "n/a" },
-      { name: "JPMorgan Chase", stake: 1.88, sharesHeld: "456.14M", reportedDate: "Mar 19, 2026", valueThousands: "n/a" },
-      { name: "Price (T.Rowe) Associates", stake: 1.54, sharesHeld: "373.19M", reportedDate: "Mar 19, 2026", valueThousands: "n/a" },
-      { name: "Norges Bank", stake: 1.37, sharesHeld: "333.75M", reportedDate: "Mar 19, 2026", valueThousands: "n/a" },
-      { name: "Morgan Stanley", stake: 1.33, sharesHeld: "323.73M", reportedDate: "Mar 19, 2026", valueThousands: "n/a" },
-      { name: "Northern Trust", stake: 1.04, sharesHeld: "253.79M", reportedDate: "Mar 19, 2026", valueThousands: "n/a" },
-    ],
-  },
+  TSLA: buildFallbackInstitutionalSnapshot("Mar 20, 2026", [
+    { name: "The Vanguard Group, Inc.", stake: 7.59, sharesHeld: "252.39M", reportedDate: "Mar 20, 2026", valueThousands: "n/a" },
+    { name: "BlackRock, Inc.", stake: 6.22, sharesHeld: "206.74M", reportedDate: "Mar 20, 2026", valueThousands: "n/a" },
+    { name: "State Street", stake: 3.5, sharesHeld: "113.76M", reportedDate: "Mar 20, 2026", valueThousands: "n/a" },
+    { name: "Geode Capital Management", stake: 1.96, sharesHeld: "65.33M", reportedDate: "Mar 20, 2026", valueThousands: "n/a" },
+    { name: "Capital World Investors", stake: 1.32, sharesHeld: "44.04M", reportedDate: "Mar 20, 2026", valueThousands: "n/a" },
+  ]),
+  AAPL: buildFallbackInstitutionalSnapshot("Jan 13, 2026", [
+    { name: "Vanguard", stake: 9.52, sharesHeld: "1.40B", reportedDate: "Jan 13, 2026", valueThousands: "$364B" },
+    { name: "BlackRock", stake: 7.8, sharesHeld: "1.15B", reportedDate: "Jan 13, 2026", valueThousands: "$298B" },
+    { name: "State Street", stake: 4.07, sharesHeld: "598M", reportedDate: "Jan 13, 2026", valueThousands: "$155B" },
+    { name: "JP Morgan Chase", stake: 3.22, sharesHeld: "473M", reportedDate: "Jan 13, 2026", valueThousands: "$123B" },
+    { name: "Geode Capital Management", stake: 2.42, sharesHeld: "356M", reportedDate: "Jan 13, 2026", valueThousands: "$93B" },
+    { name: "FMR", stake: 2.06, sharesHeld: "303M", reportedDate: "Jan 13, 2026", valueThousands: "$72B" },
+    { name: "Berkshire Hathaway", stake: 1.62, sharesHeld: "238M", reportedDate: "Jan 13, 2026", valueThousands: "$62B" },
+    { name: "Morgan Stanley", stake: 1.56, sharesHeld: "229M", reportedDate: "Jan 13, 2026", valueThousands: "$60B" },
+    { name: "T. Rowe Price", stake: 1.45, sharesHeld: "213M", reportedDate: "Jan 13, 2026", valueThousands: "$55B" },
+    { name: "Norges Bank", stake: 1.29, sharesHeld: "190M", reportedDate: "Jan 13, 2026", valueThousands: "$49B" },
+  ]),
+  NVDA: buildFallbackInstitutionalSnapshot("Mar 19, 2026", [
+    { name: "Vanguard Group", stake: 9.33, sharesHeld: "2.27B", reportedDate: "Mar 19, 2026", valueThousands: "n/a" },
+    { name: "BlackRock", stake: 7.98, sharesHeld: "1.94B", reportedDate: "Mar 19, 2026", valueThousands: "n/a" },
+    { name: "State Street", stake: 4.08, sharesHeld: "991.48M", reportedDate: "Mar 19, 2026", valueThousands: "n/a" },
+    { name: "FMR", stake: 3.65, sharesHeld: "971.06M", reportedDate: "Mar 19, 2026", valueThousands: "n/a" },
+    { name: "Geode Capital Management", stake: 2.42, sharesHeld: "588.8M", reportedDate: "Mar 19, 2026", valueThousands: "n/a" },
+    { name: "JPMorgan Chase", stake: 1.88, sharesHeld: "456.14M", reportedDate: "Mar 19, 2026", valueThousands: "n/a" },
+    { name: "Price (T.Rowe) Associates", stake: 1.54, sharesHeld: "373.19M", reportedDate: "Mar 19, 2026", valueThousands: "n/a" },
+    { name: "Norges Bank", stake: 1.37, sharesHeld: "333.75M", reportedDate: "Mar 19, 2026", valueThousands: "n/a" },
+    { name: "Morgan Stanley", stake: 1.33, sharesHeld: "323.73M", reportedDate: "Mar 19, 2026", valueThousands: "n/a" },
+    { name: "Northern Trust", stake: 1.04, sharesHeld: "253.79M", reportedDate: "Mar 19, 2026", valueThousands: "n/a" },
+  ]),
+  MSFT: buildFallbackInstitutionalSnapshot("Mar 31, 2026", [
+    { name: "The Vanguard Group, Inc.", stake: 8.95, sharesHeld: "665M", reportedDate: "Mar 31, 2026", valueThousands: "n/a" },
+    { name: "BlackRock, Inc.", stake: 7.63, sharesHeld: "567M", reportedDate: "Mar 31, 2026", valueThousands: "n/a" },
+    { name: "State Street", stake: 4.16, sharesHeld: "309M", reportedDate: "Mar 31, 2026", valueThousands: "n/a" },
+    { name: "FMR LLC", stake: 2.27, sharesHeld: "169M", reportedDate: "Mar 31, 2026", valueThousands: "n/a" },
+    { name: "Geode Capital Management", stake: 1.98, sharesHeld: "147M", reportedDate: "Mar 31, 2026", valueThousands: "n/a" },
+  ]),
+  AMZN: buildFallbackInstitutionalSnapshot("Mar 31, 2026", [
+    { name: "The Vanguard Group, Inc.", stake: 7.34, sharesHeld: "773M", reportedDate: "Mar 31, 2026", valueThousands: "n/a" },
+    { name: "BlackRock, Inc.", stake: 6.34, sharesHeld: "668M", reportedDate: "Mar 31, 2026", valueThousands: "n/a" },
+    { name: "State Street", stake: 3.21, sharesHeld: "338M", reportedDate: "Mar 31, 2026", valueThousands: "n/a" },
+    { name: "Geode Capital Management", stake: 1.92, sharesHeld: "202M", reportedDate: "Mar 31, 2026", valueThousands: "n/a" },
+    { name: "T. Rowe Price", stake: 1.28, sharesHeld: "135M", reportedDate: "Mar 31, 2026", valueThousands: "n/a" },
+  ]),
+  GOOGL: buildFallbackInstitutionalSnapshot("Mar 31, 2026", [
+    { name: "The Vanguard Group, Inc.", stake: 7.18, sharesHeld: "843M", reportedDate: "Mar 31, 2026", valueThousands: "n/a" },
+    { name: "BlackRock, Inc.", stake: 6.09, sharesHeld: "715M", reportedDate: "Mar 31, 2026", valueThousands: "n/a" },
+    { name: "State Street", stake: 3.49, sharesHeld: "410M", reportedDate: "Mar 31, 2026", valueThousands: "n/a" },
+    { name: "FMR LLC", stake: 2.01, sharesHeld: "236M", reportedDate: "Mar 31, 2026", valueThousands: "n/a" },
+    { name: "Geode Capital Management", stake: 1.88, sharesHeld: "221M", reportedDate: "Mar 31, 2026", valueThousands: "n/a" },
+  ]),
+  META: buildFallbackInstitutionalSnapshot("Mar 31, 2026", [
+    { name: "The Vanguard Group, Inc.", stake: 7.57, sharesHeld: "192M", reportedDate: "Mar 31, 2026", valueThousands: "n/a" },
+    { name: "BlackRock, Inc.", stake: 6.72, sharesHeld: "170M", reportedDate: "Mar 31, 2026", valueThousands: "n/a" },
+    { name: "State Street", stake: 3.91, sharesHeld: "99M", reportedDate: "Mar 31, 2026", valueThousands: "n/a" },
+    { name: "Geode Capital Management", stake: 2.01, sharesHeld: "51M", reportedDate: "Mar 31, 2026", valueThousands: "n/a" },
+    { name: "FMR LLC", stake: 1.46, sharesHeld: "37M", reportedDate: "Mar 31, 2026", valueThousands: "n/a" },
+  ]),
+  AVGO: buildFallbackInstitutionalSnapshot("Mar 31, 2026", [
+    { name: "The Vanguard Group, Inc.", stake: 8.22, sharesHeld: "38M", reportedDate: "Mar 31, 2026", valueThousands: "n/a" },
+    { name: "BlackRock, Inc.", stake: 7.06, sharesHeld: "32M", reportedDate: "Mar 31, 2026", valueThousands: "n/a" },
+    { name: "Capital World Investors", stake: 4.05, sharesHeld: "19M", reportedDate: "Mar 31, 2026", valueThousands: "n/a" },
+    { name: "State Street", stake: 3.67, sharesHeld: "17M", reportedDate: "Mar 31, 2026", valueThousands: "n/a" },
+    { name: "Geode Capital Management", stake: 1.77, sharesHeld: "8M", reportedDate: "Mar 31, 2026", valueThousands: "n/a" },
+  ]),
+  AMD: buildFallbackInstitutionalSnapshot("Mar 31, 2026", [
+    { name: "The Vanguard Group, Inc.", stake: 8.53, sharesHeld: "138M", reportedDate: "Mar 31, 2026", valueThousands: "n/a" },
+    { name: "BlackRock, Inc.", stake: 7.11, sharesHeld: "115M", reportedDate: "Mar 31, 2026", valueThousands: "n/a" },
+    { name: "State Street", stake: 3.98, sharesHeld: "64M", reportedDate: "Mar 31, 2026", valueThousands: "n/a" },
+    { name: "Geode Capital Management", stake: 1.93, sharesHeld: "31M", reportedDate: "Mar 31, 2026", valueThousands: "n/a" },
+    { name: "FMR LLC", stake: 1.51, sharesHeld: "24M", reportedDate: "Mar 31, 2026", valueThousands: "n/a" },
+  ]),
+  NFLX: buildFallbackInstitutionalSnapshot("Mar 31, 2026", [
+    { name: "The Vanguard Group, Inc.", stake: 8.71, sharesHeld: "37M", reportedDate: "Mar 31, 2026", valueThousands: "n/a" },
+    { name: "BlackRock, Inc.", stake: 7.43, sharesHeld: "31M", reportedDate: "Mar 31, 2026", valueThousands: "n/a" },
+    { name: "FMR LLC", stake: 4.14, sharesHeld: "17M", reportedDate: "Mar 31, 2026", valueThousands: "n/a" },
+    { name: "State Street", stake: 3.88, sharesHeld: "16M", reportedDate: "Mar 31, 2026", valueThousands: "n/a" },
+    { name: "Capital Research Global Investors", stake: 2.16, sharesHeld: "9M", reportedDate: "Mar 31, 2026", valueThousands: "n/a" },
+  ]),
+  ORCL: buildFallbackInstitutionalSnapshot("Mar 31, 2026", [
+    { name: "The Vanguard Group, Inc.", stake: 9.06, sharesHeld: "247M", reportedDate: "Mar 31, 2026", valueThousands: "n/a" },
+    { name: "BlackRock, Inc.", stake: 6.94, sharesHeld: "189M", reportedDate: "Mar 31, 2026", valueThousands: "n/a" },
+    { name: "State Street", stake: 3.97, sharesHeld: "108M", reportedDate: "Mar 31, 2026", valueThousands: "n/a" },
+    { name: "FMR LLC", stake: 2.08, sharesHeld: "57M", reportedDate: "Mar 31, 2026", valueThousands: "n/a" },
+    { name: "Geode Capital Management", stake: 1.88, sharesHeld: "51M", reportedDate: "Mar 31, 2026", valueThousands: "n/a" },
+  ]),
+  JPM: buildFallbackInstitutionalSnapshot("Mar 31, 2026", [
+    { name: "The Vanguard Group, Inc.", stake: 9.11, sharesHeld: "262M", reportedDate: "Mar 31, 2026", valueThousands: "n/a" },
+    { name: "BlackRock, Inc.", stake: 7.42, sharesHeld: "213M", reportedDate: "Mar 31, 2026", valueThousands: "n/a" },
+    { name: "State Street", stake: 4.38, sharesHeld: "126M", reportedDate: "Mar 31, 2026", valueThousands: "n/a" },
+    { name: "Capital World Investors", stake: 2.29, sharesHeld: "66M", reportedDate: "Mar 31, 2026", valueThousands: "n/a" },
+    { name: "Geode Capital Management", stake: 1.63, sharesHeld: "47M", reportedDate: "Mar 31, 2026", valueThousands: "n/a" },
+  ]),
+  BAC: buildFallbackInstitutionalSnapshot("Mar 31, 2026", [
+    { name: "Berkshire Hathaway", stake: 13.8, sharesHeld: "1.03B", reportedDate: "Mar 31, 2026", valueThousands: "n/a" },
+    { name: "The Vanguard Group, Inc.", stake: 8.46, sharesHeld: "631M", reportedDate: "Mar 31, 2026", valueThousands: "n/a" },
+    { name: "BlackRock, Inc.", stake: 6.89, sharesHeld: "514M", reportedDate: "Mar 31, 2026", valueThousands: "n/a" },
+    { name: "State Street", stake: 3.94, sharesHeld: "294M", reportedDate: "Mar 31, 2026", valueThousands: "n/a" },
+    { name: "Geode Capital Management", stake: 1.57, sharesHeld: "117M", reportedDate: "Mar 31, 2026", valueThousands: "n/a" },
+  ]),
+  WMT: buildFallbackInstitutionalSnapshot("Mar 31, 2026", [
+    { name: "Walton Enterprises, LLC", stake: 34.2, sharesHeld: "2.95B", reportedDate: "Mar 31, 2026", valueThousands: "n/a" },
+    { name: "The Vanguard Group, Inc.", stake: 5.11, sharesHeld: "441M", reportedDate: "Mar 31, 2026", valueThousands: "n/a" },
+    { name: "BlackRock, Inc.", stake: 4.29, sharesHeld: "370M", reportedDate: "Mar 31, 2026", valueThousands: "n/a" },
+    { name: "State Street", stake: 2.13, sharesHeld: "184M", reportedDate: "Mar 31, 2026", valueThousands: "n/a" },
+    { name: "Geode Capital Management", stake: 1.08, sharesHeld: "93M", reportedDate: "Mar 31, 2026", valueThousands: "n/a" },
+  ]),
+  COST: buildFallbackInstitutionalSnapshot("Mar 31, 2026", [
+    { name: "The Vanguard Group, Inc.", stake: 9.02, sharesHeld: "40M", reportedDate: "Mar 31, 2026", valueThousands: "n/a" },
+    { name: "BlackRock, Inc.", stake: 7.24, sharesHeld: "32M", reportedDate: "Mar 31, 2026", valueThousands: "n/a" },
+    { name: "State Street", stake: 4.16, sharesHeld: "18M", reportedDate: "Mar 31, 2026", valueThousands: "n/a" },
+    { name: "FMR LLC", stake: 2.58, sharesHeld: "11M", reportedDate: "Mar 31, 2026", valueThousands: "n/a" },
+    { name: "Geode Capital Management", stake: 1.79, sharesHeld: "8M", reportedDate: "Mar 31, 2026", valueThousands: "n/a" },
+  ]),
+  LLY: buildFallbackInstitutionalSnapshot("Mar 31, 2026", [
+    { name: "The Vanguard Group, Inc.", stake: 8.36, sharesHeld: "75M", reportedDate: "Mar 31, 2026", valueThousands: "n/a" },
+    { name: "BlackRock, Inc.", stake: 7.18, sharesHeld: "64M", reportedDate: "Mar 31, 2026", valueThousands: "n/a" },
+    { name: "State Street", stake: 4.14, sharesHeld: "37M", reportedDate: "Mar 31, 2026", valueThousands: "n/a" },
+    { name: "Capital World Investors", stake: 2.67, sharesHeld: "24M", reportedDate: "Mar 31, 2026", valueThousands: "n/a" },
+    { name: "FMR LLC", stake: 1.71, sharesHeld: "15M", reportedDate: "Mar 31, 2026", valueThousands: "n/a" },
+  ]),
+  XOM: buildFallbackInstitutionalSnapshot("Mar 31, 2026", [
+    { name: "The Vanguard Group, Inc.", stake: 9.73, sharesHeld: "411M", reportedDate: "Mar 31, 2026", valueThousands: "n/a" },
+    { name: "BlackRock, Inc.", stake: 7.32, sharesHeld: "309M", reportedDate: "Mar 31, 2026", valueThousands: "n/a" },
+    { name: "State Street", stake: 4.25, sharesHeld: "180M", reportedDate: "Mar 31, 2026", valueThousands: "n/a" },
+    { name: "Geode Capital Management", stake: 1.98, sharesHeld: "84M", reportedDate: "Mar 31, 2026", valueThousands: "n/a" },
+    { name: "Capital Research Global Investors", stake: 1.53, sharesHeld: "65M", reportedDate: "Mar 31, 2026", valueThousands: "n/a" },
+  ]),
+  JNJ: buildFallbackInstitutionalSnapshot("Mar 31, 2026", [
+    { name: "The Vanguard Group, Inc.", stake: 8.91, sharesHeld: "214M", reportedDate: "Mar 31, 2026", valueThousands: "n/a" },
+    { name: "BlackRock, Inc.", stake: 7.11, sharesHeld: "171M", reportedDate: "Mar 31, 2026", valueThousands: "n/a" },
+    { name: "State Street", stake: 4.26, sharesHeld: "102M", reportedDate: "Mar 31, 2026", valueThousands: "n/a" },
+    { name: "Geode Capital Management", stake: 1.95, sharesHeld: "47M", reportedDate: "Mar 31, 2026", valueThousands: "n/a" },
+    { name: "FMR LLC", stake: 1.62, sharesHeld: "39M", reportedDate: "Mar 31, 2026", valueThousands: "n/a" },
+  ]),
+  KO: buildFallbackInstitutionalSnapshot("Mar 31, 2026", [
+    { name: "Berkshire Hathaway", stake: 9.28, sharesHeld: "400M", reportedDate: "Mar 31, 2026", valueThousands: "n/a" },
+    { name: "The Vanguard Group, Inc.", stake: 8.41, sharesHeld: "362M", reportedDate: "Mar 31, 2026", valueThousands: "n/a" },
+    { name: "BlackRock, Inc.", stake: 7.02, sharesHeld: "302M", reportedDate: "Mar 31, 2026", valueThousands: "n/a" },
+    { name: "State Street", stake: 4.23, sharesHeld: "182M", reportedDate: "Mar 31, 2026", valueThousands: "n/a" },
+    { name: "Geode Capital Management", stake: 1.84, sharesHeld: "79M", reportedDate: "Mar 31, 2026", valueThousands: "n/a" },
+  ]),
 };
+
+const SUPPORTED_HOLDER_SYMBOLS = Array.from(new Set([...Object.keys(HOLDER_SOURCES), ...Object.keys(FALLBACK_HOLDERS)]));
+const cache = new Map();
 
 const FALLBACK_ETF_HOLDINGS = {
   SPY: {
@@ -116,6 +224,21 @@ function buildPayload(config, snapshot, source = "scraped-web") {
     symbol: config.symbol,
     type: config.type,
     source,
+    scrapedAt: new Date().toISOString(),
+    snapshot: {
+      asOf: snapshot.asOf,
+      totalHolders: snapshot.totalHolders,
+      top10Concentration: Number(snapshot.holders.reduce((sum, holder) => sum + holder.stake, 0).toFixed(2)),
+    },
+    holders: snapshot.holders,
+  };
+}
+
+function buildFallbackStockPayload(symbol, snapshot) {
+  return {
+    symbol,
+    type: "stock",
+    source: "snapshot-fallback",
     scrapedAt: new Date().toISOString(),
     snapshot: {
       asOf: snapshot.asOf,
@@ -391,11 +514,11 @@ async function scrapeHoldersBySymbol(inputSymbol) {
       return payload;
     }
 
-    if (!config || !fallback) {
+    if (!fallback) {
       throw _error;
     }
 
-    const payload = buildPayload(config, fallback, "snapshot-fallback");
+    const payload = config ? buildPayload(config, fallback, "snapshot-fallback") : buildFallbackStockPayload(symbol, fallback);
     cache.set(symbol, {
       timestamp: Date.now(),
       value: payload,

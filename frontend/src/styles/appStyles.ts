@@ -203,6 +203,48 @@ export const styles = StyleSheet.create({
   sectionHeader: { flexDirection: "row", justifyContent: "space-between", alignItems: "center", marginTop: 8 },
   sectionTitle: { color: COLORS.text, fontSize: 28, fontWeight: "800" },
   sectionMeta: { color: COLORS.muted, fontSize: 15 },
+  searchResultsWrap: { gap: 14 },
+  searchResultCard: {
+    backgroundColor: COLORS.panel,
+    borderRadius: 24,
+    borderWidth: 1,
+    borderColor: COLORS.border,
+    paddingHorizontal: 18,
+    paddingVertical: 18,
+    gap: 14,
+  },
+  searchResultTopRow: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    gap: 12,
+  },
+  searchResultTicker: {
+    color: COLORS.text,
+    fontSize: 24,
+    fontWeight: "800",
+  },
+  searchResultCompany: {
+    color: COLORS.muted,
+    fontSize: 15,
+    marginTop: 4,
+  },
+  searchResultBottomRow: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    gap: 12,
+  },
+  searchResultMeta: {
+    color: COLORS.yellowBright,
+    fontSize: 13,
+    fontWeight: "700",
+    textTransform: "uppercase",
+    letterSpacing: 0.8,
+  },
+  searchResultHint: {
+    color: COLORS.muted,
+    fontSize: 13,
+  },
   assetCard: {
     backgroundColor: COLORS.panel,
     borderRadius: 26,

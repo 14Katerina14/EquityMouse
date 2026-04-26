@@ -50,6 +50,11 @@ function buildGenericSeries(price: number): ChartSeriesByRange {
   };
 }
 
+function parseAssetPrice(rawPrice: string) {
+  const numericPrice = Number(String(rawPrice).replace(/[$,]/g, ""));
+  return Number.isFinite(numericPrice) ? numericPrice : 100;
+}
+
 export function DetailScreen({ initialAsset, onBack }: DetailScreenProps) {
   const fallbackAsset = initialAsset;
   const assetTicker = initialAsset.ticker;
@@ -69,13 +74,19 @@ export function DetailScreen({ initialAsset, onBack }: DetailScreenProps) {
     setMetricValues({});
     setTopHoldingsData(getTopHoldingsData(assetTicker));
 
-    fetchBackendQuoteAsset(assetTicker)
+    fetchBackendQuoteAsset(assetTicker, fallbackAsset)
       .then((backendAsset) => {
         if (!mounted) {
           return;
         }
 
         setAsset(backendAsset);
+
+        if (assetTicker !== "SPY") {
+          setSeriesByRange(buildGenericSeries(parseAssetPrice(backendAsset.price)));
+          setDataSource("mock");
+          setDataReason(`Live quote loaded for ${backendAsset.ticker}. Historical detail data is still using the seeded overview chart.`);
+        }
       })
       .catch(() => {
         if (!mounted) {
@@ -83,6 +94,12 @@ export function DetailScreen({ initialAsset, onBack }: DetailScreenProps) {
         }
 
         setAsset(fallbackAsset);
+
+        if (assetTicker !== "SPY") {
+          setSeriesByRange(buildGenericSeries(parseAssetPrice(fallbackAsset.price)));
+          setDataSource("mock");
+          setDataReason(`Detailed live data for ${fallbackAsset.ticker} is not connected yet. Showing seeded overview data.`);
+        }
       });
 
     fetchBackendMetrics(assetTicker)
@@ -138,12 +155,6 @@ export function DetailScreen({ initialAsset, onBack }: DetailScreenProps) {
         setDataSource(result.source);
         setDataReason(result.reason ?? (result.source === "live" ? "Live market data loaded for SPY." : "Using fallback demo data."));
       });
-    } else {
-      const numericPrice = Number(String(fallbackAsset.price).replace(/[$,]/g, ""));
-
-      setSeriesByRange(buildGenericSeries(numericPrice));
-      setDataSource("mock");
-      setDataReason(`Detailed live data for ${fallbackAsset.ticker} is not connected yet. Showing seeded overview data.`);
     }
 
     return () => {
