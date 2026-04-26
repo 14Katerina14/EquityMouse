@@ -62,6 +62,16 @@ export const ASSETS: Asset[] = [
     category: "metals",
   },
   {
+    ticker: "PLATINUM",
+    company: "Platinum OZ",
+    price: "$2136.00",
+    move: "+0.00%",
+    changeValue: "+$0.00",
+    trend: "up",
+    tag: "Platinum Exposure",
+    category: "metals",
+  },
+  {
     ticker: "SPY",
     company: "SPDR S&P 500 ETF",
     price: "$518.23",

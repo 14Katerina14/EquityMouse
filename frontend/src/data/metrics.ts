@@ -1,5 +1,7 @@
 import { AssetCategory, MetricDefinition } from "../types";
 
+const INDUSTRIAL_METAL_TICKERS = ["COPPER", "NICKEL", "LITHIUM", "URANIUM", "COBALT", "ZINC"];
+
 export const STOCK_METRICS: MetricDefinition[] = [
   {
     id: "pe",
@@ -295,6 +297,61 @@ export const METAL_METRICS: MetricDefinition[] = [
   },
 ];
 
+export const INDUSTRIAL_METAL_METRICS: MetricDefinition[] = [
+  {
+    id: "price-oz",
+    label: "Spot Price",
+    value: "--",
+    aliases: ["spot price", "price", "commodity price", "last price"],
+    title: "Spot Commodity Price",
+    definition: "Shows the latest reference trading price for the metal in the market unit used by the source.",
+    formula: "Latest quoted commodity price",
+    interpretation: "This is the cleanest short-form reference for where the metal trades right now.",
+    goodBad: "There is no universally good or bad level in isolation. Context comes from supply trends, industrial demand, and macro conditions.",
+    sectors: "Useful for commodity tracking, resource investing, and macro cycle analysis.",
+    warning: "Spot price alone does not tell you whether the metal is structurally cheap or expensive.",
+  },
+  {
+    id: "market-cap",
+    label: "1D Change",
+    value: "--",
+    aliases: ["1d change", "daily change", "day move"],
+    title: "One Day Change",
+    definition: "Shows the metal's day-over-day percentage move from the previous session.",
+    formula: "(Current price - Previous close) / Previous close",
+    interpretation: "Helps show short-term momentum and market reaction.",
+    goodBad: "Neither up nor down is automatically good. It is useful for direction and volatility context only.",
+    sectors: "Most relevant for traders and users tracking commodity momentum.",
+    warning: "One-day moves are noisy and should not be used as a valuation signal by themselves.",
+  },
+  {
+    id: "estimated-supply",
+    label: "30D Change",
+    value: "--",
+    aliases: ["30d change", "monthly change", "1m change"],
+    title: "Thirty Day Change",
+    definition: "Shows how much the metal price has moved over roughly the last month.",
+    formula: "(Current price - price 30 days ago) / price 30 days ago",
+    interpretation: "Useful for spotting medium-term trend direction.",
+    goodBad: "A strong monthly move can indicate momentum, but it can also mean the metal is extended in the short run.",
+    sectors: "Useful in commodity trend analysis and macro rotation views.",
+    warning: "Monthly performance should be paired with longer-term context and supply-demand news.",
+  },
+  {
+    id: "estimate-basis",
+    label: "1Y Change",
+    value: "--",
+    aliases: ["1y change", "yearly change", "annual change"],
+    title: "One Year Change",
+    definition: "Shows how much the metal price has changed relative to the same time last year.",
+    formula: "(Current price - price one year ago) / price one year ago",
+    interpretation: "Useful for longer-cycle context and trend persistence.",
+    goodBad: "A high positive one-year move can reflect strong demand, inflation hedging, or supply constraints, but can also mean the market is already crowded.",
+    sectors: "Useful for macro, commodity, and resource exposure analysis.",
+    warning: "One-year change is performance context, not an intrinsic valuation measure.",
+  },
+];
+
 export const AVAILABLE_METRICS: MetricDefinition[] = STOCK_METRICS;
 
 export const DEFAULT_METRIC_IDS = ["pe", "roe", "debt-equity"];
@@ -323,4 +380,24 @@ export function getDefaultMetricIdsByCategory(category: AssetCategory): string[]
   }
 
   return DEFAULT_METRIC_IDS;
+}
+
+export function isIndustrialMetalTicker(ticker?: string): boolean {
+  return INDUSTRIAL_METAL_TICKERS.includes(String(ticker || "").toUpperCase());
+}
+
+export function getAvailableMetrics(assetCategory: AssetCategory, ticker?: string): MetricDefinition[] {
+  if (assetCategory === "metals" && isIndustrialMetalTicker(ticker)) {
+    return INDUSTRIAL_METAL_METRICS;
+  }
+
+  return getAvailableMetricsByCategory(assetCategory);
+}
+
+export function getDefaultMetricIds(assetCategory: AssetCategory, ticker?: string): string[] {
+  if (assetCategory === "metals" && isIndustrialMetalTicker(ticker)) {
+    return DEFAULT_METAL_METRIC_IDS;
+  }
+
+  return getDefaultMetricIdsByCategory(assetCategory);
 }

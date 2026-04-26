@@ -1,26 +1,27 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { Modal, Pressable, ScrollView, Text, TextInput, TouchableOpacity, View } from "react-native";
-import { getAvailableMetricsByCategory, getDefaultMetricIdsByCategory } from "../data/metrics";
+import { getAvailableMetrics, getDefaultMetricIds } from "../data/metrics";
 import { styles } from "../styles/appStyles";
 import { COLORS } from "../theme/colors";
 import { AssetCategory, MetricDefinition, MetricValuesMap } from "../types";
 
 type MetricsSectionProps = {
   assetCategory: AssetCategory;
+  assetTicker?: string;
   metricValues?: MetricValuesMap;
 };
 
-export function MetricsSection({ assetCategory, metricValues }: MetricsSectionProps) {
+export function MetricsSection({ assetCategory, assetTicker, metricValues }: MetricsSectionProps) {
   const [query, setQuery] = useState("");
-  const [selectedIds, setSelectedIds] = useState<string[]>(getDefaultMetricIdsByCategory(assetCategory));
+  const [selectedIds, setSelectedIds] = useState<string[]>(getDefaultMetricIds(assetCategory, assetTicker));
   const [activeMetric, setActiveMetric] = useState<MetricDefinition | null>(null);
-  const availableMetrics = useMemo(() => getAvailableMetricsByCategory(assetCategory), [assetCategory]);
+  const availableMetrics = useMemo(() => getAvailableMetrics(assetCategory, assetTicker), [assetCategory, assetTicker]);
 
   useEffect(() => {
-    setSelectedIds(getDefaultMetricIdsByCategory(assetCategory));
+    setSelectedIds(getDefaultMetricIds(assetCategory, assetTicker));
     setQuery("");
     setActiveMetric(null);
-  }, [assetCategory]);
+  }, [assetCategory, assetTicker]);
 
   const resolvedMetrics = useMemo(() => {
     return availableMetrics.map((metric) => ({

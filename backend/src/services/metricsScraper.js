@@ -89,7 +89,12 @@ function extractCommoditySupply(text, commodityName) {
     return match ? `${match[1]} metric tonnes` : null;
   }
 
-  const ouncesMatch = text.match(/around\s+([0-9]{1,3}(?:,[0-9]{3})*(?:\.[0-9]+)?)\s+ounces of palladium have been mined/i);
+  const escapedName = commodityName.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+  const ouncesPattern = new RegExp(
+    `around\\s+([0-9]{1,3}(?:,[0-9]{3})*(?:\\.[0-9]+)?)\\s+ounces of ${escapedName} have been mined`,
+    "i"
+  );
+  const ouncesMatch = text.match(ouncesPattern);
   return ouncesMatch ? `${ouncesMatch[1]} ounces` : null;
 }
 
@@ -104,8 +109,53 @@ function extractCommodityEstimateBasis(text, commodityName) {
     return match ? match[1] : "CPM Group";
   }
 
-  const palladiumMatch = text.match(/as of\s+([0-9]{4})\s+around/i);
-  return palladiumMatch ? palladiumMatch[1] : "Estimated";
+  const genericMatch = text.match(/as of\s+([0-9]{4})\s+around/i);
+  return genericMatch ? genericMatch[1] : "Estimated";
+}
+
+function extractCommodityMarketCap(text, commodityName) {
+  const escapedName = commodityName.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+  const namedPattern = new RegExp(
+    `The Market Capitalization of ${escapedName}\\s+is currently around\\s+(\\$[0-9]{1,3}(?:,[0-9]{3})*(?:\\.[0-9]+)?\\s?[KMBT]?)`,
+    "i"
+  );
+  const namedMatch = text.match(namedPattern);
+
+  if (namedMatch) {
+    return namedMatch[1].replace(/\s+/g, "");
+  }
+
+  const headlinePattern = /Estimated Market Cap:\s*(\$[0-9]{1,3}(?:,[0-9]{3})*(?:\.[0-9]+)?\s?[KMBT]?)/i;
+  const headlineMatch = text.match(headlinePattern);
+  return headlineMatch ? headlineMatch[1].replace(/\s+/g, "") : null;
+}
+
+function extractTradingEconomicsOverview(text, commodityName) {
+  const escapedName = commodityName.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+  const summaryPattern = new RegExp(
+    `${escapedName}\\s+(rose|fell|traded flat|traded|slipped|steadied|climbed|dropped|declined|advanced)\\s+(?:to|at|around)\\s+\\$?([0-9]{1,3}(?:,[0-9]{3})*(?:\\.[0-9]+)?)\\s+([A-Z/]+).*?(?:up|down)\\s+([0-9]+(?:\\.[0-9]+)?)%\\s+from the previous day\\. Over the past month,\\s+${escapedName}'s price has\\s+(risen|fallen|remained flat),?\\s*(?:by\\s*)?([0-9]+(?:\\.[0-9]+)?)%.*?(up|higher|increased|down|lower|fallen)\\s+([0-9]+(?:\\.[0-9]+)?)%\\s+(?:compared to|than) the same time last year`,
+    "i"
+  );
+  const summaryMatch = text.match(summaryPattern);
+
+  if (!summaryMatch) {
+    return null;
+  }
+
+  const dailyVerb = summaryMatch[1].toLowerCase();
+  const monthlyVerb = summaryMatch[5].toLowerCase();
+  const yearlyVerb = summaryMatch[7].toLowerCase();
+  const dailyNegative = ["fell", "slipped", "dropped", "declined"].includes(dailyVerb);
+  const monthlyNegative = monthlyVerb === "fallen";
+  const yearlyNegative = ["down", "lower", "fallen"].includes(yearlyVerb);
+
+  return {
+    price: summaryMatch[2],
+    unit: summaryMatch[3],
+    dayChange: `${dailyNegative ? "-" : "+"}${summaryMatch[4]}%`,
+    monthChange: `${monthlyNegative ? "-" : "+"}${summaryMatch[6]}%`,
+    yearChange: `${yearlyNegative ? "-" : "+"}${summaryMatch[8]}%`,
+  };
 }
 
 function parseStockStatistics(html, config) {
@@ -145,9 +195,21 @@ function parseCommodityOverview(html, config) {
 
   return buildMetricPayload(config, {
     "price-oz": extractCommodityPrice(text, config.commodityName),
-    "market-cap": extractEtfMetric(text, ["Market cap", "Marketcap"]),
+    "market-cap": extractCommodityMarketCap(text, config.commodityName),
     "estimated-supply": extractCommoditySupply(text, config.commodityName),
     "estimate-basis": extractCommodityEstimateBasis(text, config.commodityName),
+  });
+}
+
+function parseTradingEconomicsCommodityOverview(html, config) {
+  const text = normalizeText(html);
+  const overview = extractTradingEconomicsOverview(text, config.commodityName);
+
+  return buildMetricPayload(config, {
+    "price-oz": overview ? `${overview.price} ${overview.unit}` : null,
+    "market-cap": overview ? overview.dayChange : null,
+    "estimated-supply": overview ? overview.monthChange : null,
+    "estimate-basis": overview ? overview.yearChange : null,
   });
 }
 
@@ -173,6 +235,10 @@ async function fetchMetrics(symbol) {
 
   if (config.parser === "commodityOverview") {
     return parseCommodityOverview(response.data, config);
+  }
+
+  if (config.parser === "commodityTradingEconomicsOverview") {
+    return parseTradingEconomicsCommodityOverview(response.data, config);
   }
 
   return parseEtfOverview(response.data, config);

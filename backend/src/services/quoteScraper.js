@@ -204,6 +204,38 @@ function parseCommodityPage(html, commodityName) {
   throw new Error(`Could not parse ${commodityName} price from CompaniesMarketCap page`);
 }
 
+function parseTradingEconomicsCommodityPage(html, commodityName) {
+  const $ = cheerio.load(html);
+  const text = $("body").text().replace(/\s+/g, " ").trim();
+  const escapedName = commodityName.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+  const directPattern = new RegExp(
+    `${escapedName}\\s+(rose|fell|traded flat|traded|slipped|steadied|climbed|dropped|declined|advanced)\\s+(?:to|at|around)\\s+\\$?([0-9]{1,3}(?:,[0-9]{3})*(?:\\.[0-9]+)?)\\s+[A-Z/]+.*?(?:up|down)\\s+([0-9]+(?:\\.[0-9]+)?)%\\s+from the previous day`,
+    "i"
+  );
+  const directMatch = text.match(directPattern);
+
+  if (directMatch) {
+    const dailyVerb = directMatch[1].toLowerCase();
+    const dailyNegative = ["fell", "slipped", "dropped", "declined"].includes(dailyVerb);
+    return {
+      price: parseNumber(directMatch[2]),
+      changePercent: dailyNegative ? -Math.abs(parseNumber(directMatch[3]) || 0) : parseNumber(directMatch[3]),
+    };
+  }
+
+  const actualRowPattern = /Actual\s+Previous\s+Highest\s+Lowest\s+Dates\s+Unit\s+Frequency\s+\|\s+([0-9]{1,3}(?:,[0-9]{3})*(?:\.[0-9]+)?)\s+\|/i;
+  const actualRowMatch = text.match(actualRowPattern);
+
+  if (actualRowMatch) {
+    return {
+      price: parseNumber(actualRowMatch[1]),
+      changePercent: null,
+    };
+  }
+
+  throw new Error(`Could not parse ${commodityName} price from TradingEconomics page`);
+}
+
 async function fetchQuote(symbol) {
   const config = SYMBOL_CONFIG[symbol];
 
@@ -223,6 +255,8 @@ async function fetchQuote(symbol) {
   const parsed =
     config.parser === "commodity"
       ? parseCommodityPage(response.data, config.commodityName)
+      : config.parser === "commodityTradingEconomics"
+        ? parseTradingEconomicsCommodityPage(response.data, config.commodityName)
       : parseMarketcapPage(response.data);
 
   return {

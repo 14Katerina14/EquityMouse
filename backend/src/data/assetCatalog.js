@@ -23,6 +23,13 @@ const ASSET_CATALOG = [
   { ticker: "GOLD", company: "GOLD OZ", category: "metals", tag: "Gold Exposure", featured: true },
   { ticker: "SILVER", company: "Silver OZ", category: "metals", tag: "Silver Exposure", featured: true },
   { ticker: "PALLADIUM", company: "Palladium OZ", category: "metals", tag: "Palladium Exposure", featured: true },
+  { ticker: "PLATINUM", company: "Platinum OZ", category: "metals", tag: "Platinum Exposure", featured: true },
+  { ticker: "COPPER", company: "Copper", category: "metals", tag: "Industrial Metal", featured: false },
+  { ticker: "NICKEL", company: "Nickel", category: "metals", tag: "Battery Metal", featured: false },
+  { ticker: "LITHIUM", company: "Lithium", category: "metals", tag: "Battery Metal", featured: false },
+  { ticker: "URANIUM", company: "Uranium", category: "metals", tag: "Energy Metal", featured: false },
+  { ticker: "COBALT", company: "Cobalt", category: "metals", tag: "Strategic Metal", featured: false },
+  { ticker: "ZINC", company: "Zinc", category: "metals", tag: "Industrial Metal", featured: false },
   { ticker: "SPY", company: "SPDR S&P 500 ETF", category: "etfs", tag: "Index ETF", featured: true },
   { ticker: "VGT", company: "Vanguard Information Technology ETF", category: "etfs", tag: "Tech ETF", featured: true },
 ];
