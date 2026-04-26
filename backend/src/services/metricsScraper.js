@@ -22,9 +22,10 @@ function normalizeText(html) {
 
 function extractTokenAfterLabel(text, label) {
   const escapedLabel = label.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+  const tokenPattern = "((?:\\$)?[+\\-]?[0-9][0-9,]*(?:\\.[0-9]+)?(?:\\s?[KMBT])?%?|n/a)";
   const patterns = [
-    new RegExp(`${escapedLabel}\\s*[:|]?\\s*([+\\-]?[0-9][0-9,]*(?:\\.[0-9]+)?%?|n/a|[0-9][0-9,]*(?:\\.[0-9]+)?[KMBT])`, "i"),
-    new RegExp(`([+\\-]?[0-9][0-9,]*(?:\\.[0-9]+)?%?|n/a|[0-9][0-9,]*(?:\\.[0-9]+)?[KMBT])\\s*${escapedLabel}`, "i"),
+    new RegExp(`${escapedLabel}\\s*[:|]?\\s*${tokenPattern}`, "i"),
+    new RegExp(`${tokenPattern}\\s*${escapedLabel}`, "i"),
   ];
 
   for (const pattern of patterns) {
@@ -45,6 +46,18 @@ function extractNetMargin(text) {
 
   const match = text.match(/profit margins? of ([0-9]+(?:\.[0-9]+)?)%/i);
   return match ? `${match[1]}%` : null;
+}
+
+function extractEtfMetric(text, labels) {
+  for (const label of labels) {
+    const value = extractTokenAfterLabel(text, label);
+
+    if (value) {
+      return value;
+    }
+  }
+
+  return null;
 }
 
 function buildMetricPayload(config, values) {
@@ -78,14 +91,14 @@ function parseEtfOverview(html, config) {
 
   return buildMetricPayload(config, {
     pe: extractTokenAfterLabel(text, "PE Ratio"),
-    ps: null,
-    pb: null,
-    peg: null,
-    roe: null,
-    roic: null,
-    "net-margin": null,
-    "debt-equity": null,
-    "free-cash-flow": null,
+    "expense-ratio": extractEtfMetric(text, ["Expense Ratio"]),
+    assets: extractEtfMetric(text, ["Assets", "AUM"]),
+    "holdings-count": extractEtfMetric(text, ["Holdings"]),
+    "top10-concentration": extractEtfMetric(text, ["Top 10 Percentage", "Top 10 Holdings"]),
+    "dividend-yield": extractEtfMetric(text, ["Dividend Yield"]),
+    "payout-ratio": extractEtfMetric(text, ["Payout Ratio"]),
+    beta: extractEtfMetric(text, ["Beta"]),
+    "shares-out": extractEtfMetric(text, ["Shares Out"]),
   });
 }
 

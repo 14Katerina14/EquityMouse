@@ -1,6 +1,6 @@
-import { MetricDefinition } from "../types";
+import { AssetCategory, MetricDefinition } from "../types";
 
-export const AVAILABLE_METRICS: MetricDefinition[] = [
+export const STOCK_METRICS: MetricDefinition[] = [
   {
     id: "pe",
     label: "P/E",
@@ -120,4 +120,135 @@ export const AVAILABLE_METRICS: MetricDefinition[] = [
   },
 ];
 
+export const ETF_METRICS: MetricDefinition[] = [
+  {
+    id: "pe",
+    label: "P/E",
+    value: "27.49",
+    aliases: ["pe", "price earnings", "price to earnings"],
+    title: "ETF Price to Earnings",
+    definition: "Shows the weighted average earnings multiple of the companies inside the ETF.",
+    formula: "Weighted average of constituent P/E ratios",
+    interpretation: "A higher ETF P/E usually means the fund owns companies with richer valuations or stronger growth expectations.",
+    goodBad: "Better used when compared against similar ETFs, the tracked sector, or the fund's own history.",
+    sectors: "Useful for equity ETFs such as broad market or sector funds. Less useful for bond or commodity ETFs.",
+    warning: "ETF P/E is an aggregate of holdings, not a single business valuation. Always pair it with holdings concentration and fund objective.",
+  },
+  {
+    id: "expense-ratio",
+    label: "Expense Ratio",
+    value: "0.09%",
+    aliases: ["expense ratio", "fees", "fund cost"],
+    title: "Expense Ratio",
+    definition: "Shows the annual percentage fee charged by the ETF manager.",
+    formula: "Annual fund expenses / average assets",
+    interpretation: "Lower expense ratios usually mean less performance drag over time, especially for passive funds.",
+    goodBad: "For broad passive ETFs, lower is generally better if tracking quality is similar.",
+    sectors: "Important for all ETFs, especially long-term core holdings where costs compound over years.",
+    warning: "A low expense ratio does not automatically make a fund good. Strategy, holdings quality, and concentration still matter.",
+  },
+  {
+    id: "assets",
+    label: "Assets",
+    value: "689.21B",
+    aliases: ["aum", "assets", "assets under management"],
+    title: "Assets Under Management",
+    definition: "Shows the total dollar value managed by the ETF.",
+    formula: "Total market value of fund assets",
+    interpretation: "Large asset size often suggests strong adoption, better liquidity, and lower closure risk.",
+    goodBad: "Higher AUM is usually more comfortable for large established ETFs, but small AUM is not always a problem for niche funds.",
+    sectors: "Useful across all ETF categories, especially when comparing liquidity and stability.",
+    warning: "Large AUM does not guarantee better returns. It mainly says more about scale and market adoption.",
+  },
+  {
+    id: "holdings-count",
+    label: "Holdings",
+    value: "505",
+    aliases: ["holdings", "holdings count", "number of holdings"],
+    title: "Number of Holdings",
+    definition: "Shows how many securities are inside the ETF.",
+    formula: "Count of current fund positions",
+    interpretation: "More holdings can mean broader diversification, while fewer holdings usually mean higher concentration.",
+    goodBad: "Broad diversification can reduce single-stock risk, but a concentrated ETF can be intentional if it targets a theme or sector.",
+    sectors: "Very useful for comparing broad market ETFs with thematic or sector funds.",
+    warning: "Do not assume many holdings means low risk. Weighting can still be concentrated in a few large names.",
+  },
+  {
+    id: "top10-concentration",
+    label: "Top 10 %",
+    value: "36.7%",
+    aliases: ["top 10", "top 10 concentration", "top holdings concentration"],
+    title: "Top 10 Concentration",
+    definition: "Shows how much of the ETF is concentrated in its ten biggest holdings.",
+    formula: "Sum of top 10 holding weights",
+    interpretation: "Higher concentration means a few names drive more of the ETF's returns and risk.",
+    goodBad: "Lower concentration is usually broader and steadier. Higher concentration can be acceptable if the strategy is intentionally focused.",
+    sectors: "Especially important in sector ETFs and growth-heavy funds where mega-cap names dominate.",
+    warning: "A fund can look diversified by holdings count but still be top-heavy in a few giant positions.",
+  },
+  {
+    id: "dividend-yield",
+    label: "Dividend Yield",
+    value: "1.06%",
+    aliases: ["dividend yield", "yield", "income yield"],
+    title: "Dividend Yield",
+    definition: "Shows how much annual cash distribution the ETF pays relative to its price.",
+    formula: "Annual distributions / ETF price",
+    interpretation: "Higher yield can be attractive for income, but it may also reflect slower-growth holdings or price weakness.",
+    goodBad: "Better when stable and supported by the fund's strategy, not chased blindly for income alone.",
+    sectors: "Very important for dividend, value, REIT, and income-focused ETFs.",
+    warning: "A high yield is not automatically safer or better. Look at holdings quality, payout ratio, and sector mix.",
+  },
+  {
+    id: "payout-ratio",
+    label: "Payout Ratio",
+    value: "29.30%",
+    aliases: ["payout ratio", "distribution payout"],
+    title: "ETF Payout Ratio",
+    definition: "Shows how much of the fund's earnings are distributed to investors.",
+    formula: "Annual distributions / aggregate earnings",
+    interpretation: "A moderate payout ratio can suggest sustainable distributions, while very high ratios may be harder to maintain.",
+    goodBad: "Usually healthier when distributions are supported by underlying earnings rather than overstretched payouts.",
+    sectors: "Useful for dividend-oriented equity ETFs and income funds.",
+    warning: "ETF payout ratio depends on the earnings and distribution profile of the underlying holdings, so it should not be judged alone.",
+  },
+  {
+    id: "beta",
+    label: "Beta",
+    value: "1.01",
+    aliases: ["beta", "volatility beta", "market beta"],
+    title: "Beta",
+    definition: "Measures how sensitive the ETF is to moves in the broader market.",
+    formula: "Covariance of ETF returns with market / variance of market returns",
+    interpretation: "Beta above 1 means the ETF tends to move more than the market. Below 1 means it tends to move less.",
+    goodBad: "Neither high nor low beta is automatically good. It depends on whether the investor wants more growth sensitivity or more stability.",
+    sectors: "Very useful across ETFs because it helps position the fund in a broader portfolio context.",
+    warning: "Beta describes historical sensitivity, not future safety. It should be combined with holdings, concentration, and drawdown context.",
+  },
+  {
+    id: "shares-out",
+    label: "Shares Out",
+    value: "1.01B",
+    aliases: ["shares out", "shares outstanding", "fund shares"],
+    title: "ETF Shares Outstanding",
+    definition: "Shows how many ETF shares currently exist in the market.",
+    formula: "Current fund shares issued",
+    interpretation: "Large share count often goes together with scale and liquidity, but it is less important than AUM and trading activity by itself.",
+    goodBad: "Usually neutral on its own. It becomes more useful when paired with assets and volume.",
+    sectors: "Mostly relevant for ETF structure and liquidity context rather than investment quality by itself.",
+    warning: "Shares outstanding alone says little about whether the ETF is attractive. Use it only as supporting context.",
+  },
+];
+
+export const AVAILABLE_METRICS: MetricDefinition[] = STOCK_METRICS;
+
 export const DEFAULT_METRIC_IDS = ["pe", "roe", "debt-equity"];
+export const DEFAULT_ETF_METRIC_IDS = ["pe", "expense-ratio", "top10-concentration"];
+
+export function getAvailableMetricsByCategory(category: AssetCategory): MetricDefinition[] {
+  return category === "etfs" ? ETF_METRICS : STOCK_METRICS;
+}
+
+export function getDefaultMetricIdsByCategory(category: AssetCategory): string[] {
+  return category === "etfs" ? DEFAULT_ETF_METRIC_IDS : DEFAULT_METRIC_IDS;
+}

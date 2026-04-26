@@ -104,21 +104,21 @@ const HOLDER_SOURCES = {
     type: "stock",
     source: "scraped-web",
     url: "https://example.com/path-to-tsla-holders-page",
-    parser: "motleyFoolInstitutions",
+    parser: "institutionalArticleListA",
   },
   AAPL: {
     symbol: "AAPL",
     type: "stock",
     source: "scraped-web",
     url: "https://example.com/path-to-aapl-holders-page",
-    parser: "coincodexInstitutional",
+    parser: "institutionalArticleTableB",
   },
   NVDA: {
     symbol: "NVDA",
     type: "stock",
     source: "scraped-web",
     url: "https://example.com/path-to-nvda-holders-page",
-    parser: "theStreetInstitutions",
+    parser: "institutionalArticleListC",
   },
 };
 

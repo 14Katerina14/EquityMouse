@@ -246,7 +246,7 @@ export function DetailScreen({ initialAsset, onBack }: DetailScreenProps) {
           </View>
         ) : null}
 
-        <MetricsSection metricValues={metricValues} />
+        <MetricsSection assetCategory={asset.category} metricValues={metricValues} />
       </ScrollView>
     </SafeAreaView>
   );

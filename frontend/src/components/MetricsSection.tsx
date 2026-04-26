@@ -1,25 +1,36 @@
-import React, { useMemo, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { Modal, Pressable, ScrollView, Text, TextInput, TouchableOpacity, View } from "react-native";
-import { AVAILABLE_METRICS, DEFAULT_METRIC_IDS } from "../data/metrics";
+import { getAvailableMetricsByCategory, getDefaultMetricIdsByCategory } from "../data/metrics";
 import { styles } from "../styles/appStyles";
 import { COLORS } from "../theme/colors";
-import { MetricDefinition, MetricValuesMap } from "../types";
+import { AssetCategory, MetricDefinition, MetricValuesMap } from "../types";
 
 type MetricsSectionProps = {
+  assetCategory: AssetCategory;
   metricValues?: MetricValuesMap;
 };
 
-export function MetricsSection({ metricValues }: MetricsSectionProps) {
+export function MetricsSection({ assetCategory, metricValues }: MetricsSectionProps) {
   const [query, setQuery] = useState("");
-  const [selectedIds, setSelectedIds] = useState<string[]>(DEFAULT_METRIC_IDS);
+  const [selectedIds, setSelectedIds] = useState<string[]>(getDefaultMetricIdsByCategory(assetCategory));
   const [activeMetric, setActiveMetric] = useState<MetricDefinition | null>(null);
+  const availableMetrics = useMemo(() => getAvailableMetricsByCategory(assetCategory), [assetCategory]);
+
+  useEffect(() => {
+    setSelectedIds(getDefaultMetricIdsByCategory(assetCategory));
+    setQuery("");
+    setActiveMetric(null);
+  }, [assetCategory]);
 
   const resolvedMetrics = useMemo(() => {
-    return AVAILABLE_METRICS.map((metric) => ({
+    return availableMetrics.map((metric) => ({
       ...metric,
-      value: metricValues?.[metric.id] ?? metric.value,
+      value:
+        metricValues && Object.prototype.hasOwnProperty.call(metricValues, metric.id)
+          ? metricValues[metric.id] ?? "N/A"
+          : metric.value,
     }));
-  }, [metricValues]);
+  }, [availableMetrics, metricValues]);
 
   const metricMap = useMemo(() => {
     return new Map(resolvedMetrics.map((metric) => [metric.id, metric]));

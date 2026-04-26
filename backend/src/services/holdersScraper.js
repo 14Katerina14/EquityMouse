@@ -218,15 +218,15 @@ function parseTheStreetInstitutions(html, config) {
 }
 
 function parseHolders(html, config) {
-  if (config.parser === "motleyFoolInstitutions") {
+  if (config.parser === "institutionalArticleListA") {
     return parseMotleyFoolInstitutions(html, config);
   }
 
-  if (config.parser === "coincodexInstitutional") {
+  if (config.parser === "institutionalArticleTableB") {
     return parseCoincodexInstitutional(html, config);
   }
 
-  if (config.parser === "theStreetInstitutions") {
+  if (config.parser === "institutionalArticleListC") {
     return parseTheStreetInstitutions(html, config);
   }
 
