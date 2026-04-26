@@ -236,6 +236,37 @@ function parseTradingEconomicsCommodityPage(html, commodityName) {
   throw new Error(`Could not parse ${commodityName} price from TradingEconomics page`);
 }
 
+function parseEtfOverviewQuotePage(html, symbol) {
+  const $ = cheerio.load(html);
+  const text = $("body").text().replace(/\s+/g, " ").trim();
+  const exchangePattern = new RegExp(`${symbol}\\s+·\\s+Real-Time Price\\s+·\\s+USD`, "i");
+  const exchangeMatch = text.match(exchangePattern);
+
+  if (exchangeMatch) {
+    const startIndex = exchangeMatch.index + exchangeMatch[0].length;
+    const headerWindow = text.slice(startIndex, startIndex + 400);
+    const priceMatch = headerWindow.match(/([0-9]{1,3}(?:,[0-9]{3})*(?:\.[0-9]+)?)/);
+    const changeMatch = headerWindow.match(/([+\-][0-9]{1,3}(?:,[0-9]{3})*(?:\.[0-9]+)?)\s+\(([+\-]?[0-9]+(?:\.[0-9]+)?)%\)/);
+
+    if (priceMatch) {
+      return {
+        price: parseNumber(priceMatch[1]),
+        changePercent: changeMatch ? parseNumber(changeMatch[2]) : null,
+      };
+    }
+  }
+
+  const previousCloseMatch = text.match(/Previous Close\s+([0-9]{1,3}(?:,[0-9]{3})*(?:\.[0-9]+)?)/i);
+  if (previousCloseMatch) {
+    return {
+      price: parseNumber(previousCloseMatch[1]),
+      changePercent: null,
+    };
+  }
+
+  throw new Error(`Could not parse ETF overview quote for ${symbol}`);
+}
+
 async function fetchQuote(symbol) {
   const config = SYMBOL_CONFIG[symbol];
 
@@ -257,6 +288,8 @@ async function fetchQuote(symbol) {
       ? parseCommodityPage(response.data, config.commodityName)
       : config.parser === "commodityTradingEconomics"
         ? parseTradingEconomicsCommodityPage(response.data, config.commodityName)
+        : config.parser === "etfOverviewQuote"
+          ? parseEtfOverviewQuotePage(response.data, symbol)
       : parseMarketcapPage(response.data);
 
   return {

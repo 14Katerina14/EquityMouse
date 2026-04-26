@@ -32,6 +32,16 @@ const ASSET_CATALOG = [
   { ticker: "ZINC", company: "Zinc", category: "metals", tag: "Industrial Metal", featured: false },
   { ticker: "SPY", company: "SPDR S&P 500 ETF", category: "etfs", tag: "Index ETF", featured: true },
   { ticker: "VGT", company: "Vanguard Information Technology ETF", category: "etfs", tag: "Tech ETF", featured: true },
+  { ticker: "QQQ", company: "Invesco QQQ Trust", category: "etfs", tag: "Nasdaq 100 ETF", featured: false },
+  { ticker: "VOO", company: "Vanguard S&P 500 ETF", category: "etfs", tag: "S&P 500 ETF", featured: false },
+  { ticker: "IVV", company: "iShares Core S&P 500 ETF", category: "etfs", tag: "Core Index ETF", featured: false },
+  { ticker: "DIA", company: "SPDR Dow Jones Industrial Average ETF Trust", category: "etfs", tag: "Dow ETF", featured: false },
+  { ticker: "IWM", company: "iShares Russell 2000 ETF", category: "etfs", tag: "Small Cap ETF", featured: false },
+  { ticker: "XLK", company: "Technology Select Sector SPDR Fund", category: "etfs", tag: "Sector Tech ETF", featured: false },
+  { ticker: "XLF", company: "Financial Select Sector SPDR Fund", category: "etfs", tag: "Sector Financials ETF", featured: false },
+  { ticker: "XLV", company: "Health Care Select Sector SPDR Fund", category: "etfs", tag: "Sector Healthcare ETF", featured: false },
+  { ticker: "VTI", company: "Vanguard Total Stock Market ETF", category: "etfs", tag: "Total Market ETF", featured: false },
+  { ticker: "SMH", company: "VanEck Semiconductor ETF", category: "etfs", tag: "Semiconductor ETF", featured: false },
 ];
 
 const quoteSymbols = new Set(Object.keys(QUOTE_SOURCES));
