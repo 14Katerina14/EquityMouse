@@ -2,6 +2,7 @@ const express = require("express");
 const cors = require("cors");
 
 const quoteRoutes = require("./routes/quotes");
+const holdersRoutes = require("./routes/holders");
 const metricsRoutes = require("./routes/metrics");
 
 const app = express();
@@ -18,6 +19,7 @@ app.get("/health", (_req, res) => {
 });
 
 app.use("/api/quotes", quoteRoutes);
+app.use("/api/holders", holdersRoutes);
 app.use("/api/metrics", metricsRoutes);
 
 app.use((err, _req, res, _next) => {

@@ -98,7 +98,32 @@ const METRIC_SOURCES = {
   },
 };
 
+const HOLDER_SOURCES = {
+  TSLA: {
+    symbol: "TSLA",
+    type: "stock",
+    source: "scraped-web",
+    url: "https://example.com/path-to-tsla-holders-page",
+    parser: "motleyFoolInstitutions",
+  },
+  AAPL: {
+    symbol: "AAPL",
+    type: "stock",
+    source: "scraped-web",
+    url: "https://example.com/path-to-aapl-holders-page",
+    parser: "coincodexInstitutional",
+  },
+  NVDA: {
+    symbol: "NVDA",
+    type: "stock",
+    source: "scraped-web",
+    url: "https://example.com/path-to-nvda-holders-page",
+    parser: "theStreetInstitutions",
+  },
+};
+
 module.exports = {
   QUOTE_SOURCES,
   METRIC_SOURCES,
+  HOLDER_SOURCES,
 };

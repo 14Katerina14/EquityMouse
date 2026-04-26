@@ -1,20 +1,26 @@
 import React from "react";
 import { Text, View } from "react-native";
 import Svg, { Circle } from "react-native-svg";
-import { SPY_HOLDINGS_SNAPSHOT, SPY_TOP_HOLDINGS } from "../data/topHoldings";
+import { HoldingsData } from "../data/topHoldings";
 import { styles } from "../styles/appStyles";
 
 const CHART_SIZE = 196;
 const RADIUS = 48;
 const CIRCUMFERENCE = 2 * Math.PI * RADIUS;
 
-export function TopHoldingsChart() {
+type TopHoldingsChartProps = {
+  title?: string;
+  data: HoldingsData;
+};
+
+export function TopHoldingsChart({ title = "Top Holdings", data }: TopHoldingsChartProps) {
+  const { snapshot, holdings } = data;
   const chartHoldings = [
-    ...SPY_TOP_HOLDINGS,
+    ...holdings,
     {
       symbol: "Others",
       name: "Remaining holdings",
-      weight: Number((100 - SPY_TOP_HOLDINGS.reduce((sum, item) => sum + item.weight, 0)).toFixed(2)),
+      weight: Number((100 - holdings.reduce((sum, item) => sum + item.weight, 0)).toFixed(2)),
       color: "#a8afbd",
     },
   ];
@@ -23,18 +29,20 @@ export function TopHoldingsChart() {
 
   return (
     <View style={styles.holdersCard}>
+      <Text style={styles.guideCardTitle}>{title}</Text>
+
       <View style={styles.holdingsSummaryRow}>
         <View style={styles.holdingsSummaryChip}>
           <Text style={styles.holdingsSummaryLabel}>Total Holdings</Text>
-          <Text style={styles.holdingsSummaryValue}>{SPY_HOLDINGS_SNAPSHOT.totalHoldings}</Text>
+          <Text style={styles.holdingsSummaryValue}>{snapshot.totalHoldings}</Text>
         </View>
         <View style={styles.holdingsSummaryChip}>
           <Text style={styles.holdingsSummaryLabel}>Top 10</Text>
-          <Text style={styles.holdingsSummaryValue}>{SPY_HOLDINGS_SNAPSHOT.top10Concentration}%</Text>
+          <Text style={styles.holdingsSummaryValue}>{snapshot.top10Concentration}%</Text>
         </View>
       </View>
 
-      <Text style={styles.holdingsAsOf}>Public holdings snapshot as of {SPY_HOLDINGS_SNAPSHOT.asOf}</Text>
+      <Text style={styles.holdingsAsOf}>Public holdings snapshot as of {snapshot.asOf}</Text>
 
       <View style={styles.holdersChartWrap}>
         <Svg width={CHART_SIZE} height={CHART_SIZE} viewBox="0 0 120 120">
@@ -75,7 +83,7 @@ export function TopHoldingsChart() {
       </View>
 
       <View style={styles.topHoldingsList}>
-        {SPY_TOP_HOLDINGS.map((holding, index) => (
+        {holdings.map((holding, index) => (
           <View key={`${holding.symbol}-${index}`} style={styles.topHoldingRow}>
             <View style={styles.topHoldingLeft}>
               <Text style={styles.topHoldingRank}>{index + 1}</Text>

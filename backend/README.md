@@ -8,6 +8,8 @@ Node.js + Express API for EquityMouse.
 - `GET /api/quotes` to scrape a batch of current prices
 - `GET /api/quotes/:symbol` to scrape a single symbol
 - `GET /api/quotes/supported` to list supported symbols
+- `GET /api/holders/:symbol` to scrape major stock holders for supported stocks
+- `GET /api/holders/supported` to list symbols with holders scraping
 - `GET /api/metrics/:symbol` to scrape available metrics for a single asset
 - `GET /api/metrics/supported` to list symbols with metrics scraping
 
@@ -16,8 +18,10 @@ Important:
 - data may be delayed by a few minutes or more
 - metals currently expose price reliably, but daily percentage move may be unavailable depending on page structure
 - metrics coverage is best for stocks, partial for ETFs, and currently unsupported for commodities
+- holders coverage is currently intended for supported stocks only
 - scraping source mappings are intentionally kept out of version control
-- copy `backend/src/config/scrapingSources.example.js` to `backend/src/config/scrapingSources.local.js` for local source wiring
+- create a private local source wiring file outside version control at `backend/src/config/private/scrapingSources.private.js`
+- use `backend/src/config/scrapingSources.example.js` only as a safe template structure
 
 ## Supported symbols
 
@@ -45,5 +49,6 @@ Server default port: `4000`
 - `http://localhost:4000/api/quotes`
 - `http://localhost:4000/api/quotes?symbols=TSLA,AAPL,NVDA`
 - `http://localhost:4000/api/quotes/SPY`
+- `http://localhost:4000/api/holders/TSLA`
 - `http://localhost:4000/api/metrics/TSLA`
 - `http://localhost:4000/api/metrics/SPY`

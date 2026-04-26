@@ -3,6 +3,8 @@ import { SafeAreaView, ScrollView, StatusBar, Text, TouchableOpacity, View } fro
 import { MetricsSection } from "../components/MetricsSection";
 import { PerformanceChart } from "../components/PerformanceChart";
 import { TopHoldingsChart } from "../components/TopHoldingsChart";
+import { getTopHoldingsData, HoldingsData } from "../data/topHoldings";
+import { fetchBackendHolders } from "../services/backendHolders";
 import { fetchBackendQuoteAsset } from "../services/backendQuotes";
 import { fetchBackendMetrics } from "../services/backendMetrics";
 import { fetchSpyMarketData, hasSpyApiKey } from "../services/marketData";
@@ -58,12 +60,14 @@ export function DetailScreen({ initialAsset, onBack }: DetailScreenProps) {
   const [dataReason, setDataReason] = useState(`Loading ${fallbackAsset.ticker} data...`);
   const [activeRange, setActiveRange] = useState<ChartRange>("1M");
   const [metricValues, setMetricValues] = useState<MetricValuesMap>({});
+  const [topHoldingsData, setTopHoldingsData] = useState<HoldingsData | null>(getTopHoldingsData(assetTicker));
 
   useEffect(() => {
     let mounted = true;
 
     setAsset(fallbackAsset);
     setMetricValues({});
+    setTopHoldingsData(getTopHoldingsData(assetTicker));
 
     fetchBackendQuoteAsset(assetTicker)
       .then((backendAsset) => {
@@ -96,6 +100,28 @@ export function DetailScreen({ initialAsset, onBack }: DetailScreenProps) {
 
         setMetricValues({});
       });
+
+    if (fallbackAsset.category === "stocks") {
+      fetchBackendHolders(assetTicker)
+        .then((result) => {
+          if (!mounted) {
+            return;
+          }
+
+          setTopHoldingsData(result);
+        })
+        .catch(() => {
+          if (!mounted) {
+            return;
+          }
+
+          setTopHoldingsData(getTopHoldingsData(assetTicker));
+        });
+    } else if (fallbackAsset.category === "etfs") {
+      setTopHoldingsData(getTopHoldingsData(assetTicker));
+    } else {
+      setTopHoldingsData(null);
+    }
 
     if (assetTicker === "SPY") {
       fetchSpyMarketData().then((result) => {
@@ -210,10 +236,13 @@ export function DetailScreen({ initialAsset, onBack }: DetailScreenProps) {
           />
         </View>
 
-        {asset.category === "etfs" ? (
+        {asset.category !== "metals" && topHoldingsData ? (
           <View style={styles.sectionBlock}>
-            <Text style={styles.detailSectionTitle}>Top Holdings</Text>
-            <TopHoldingsChart />
+            <Text style={styles.detailSectionTitle}>{asset.category === "etfs" ? "Top Holdings" : "Major Holders"}</Text>
+            <TopHoldingsChart
+              title={asset.category === "etfs" ? "Top Holdings" : "Major Holders"}
+              data={topHoldingsData}
+            />
           </View>
         ) : null}
 

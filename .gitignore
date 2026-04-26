@@ -27,6 +27,7 @@ backend/.env.*
 
 # Local scraping source configuration
 backend/src/config/scrapingSources.local.js
+backend/src/config/private/
 
 # Logs
 *.log
