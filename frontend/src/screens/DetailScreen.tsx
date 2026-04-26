@@ -101,7 +101,7 @@ export function DetailScreen({ initialAsset, onBack }: DetailScreenProps) {
         setMetricValues({});
       });
 
-    if (fallbackAsset.category === "stocks") {
+    if (fallbackAsset.category === "stocks" || fallbackAsset.category === "etfs") {
       fetchBackendHolders(assetTicker)
         .then((result) => {
           if (!mounted) {
@@ -117,8 +117,6 @@ export function DetailScreen({ initialAsset, onBack }: DetailScreenProps) {
 
           setTopHoldingsData(getTopHoldingsData(assetTicker));
         });
-    } else if (fallbackAsset.category === "etfs") {
-      setTopHoldingsData(getTopHoldingsData(assetTicker));
     } else {
       setTopHoldingsData(null);
     }

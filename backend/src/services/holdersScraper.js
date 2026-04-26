@@ -55,6 +55,53 @@ const FALLBACK_HOLDERS = {
   },
 };
 
+const FALLBACK_ETF_HOLDINGS = {
+  SPY: {
+    asOf: "Apr 8, 2026",
+    totalHoldings: 505,
+    top10Concentration: 36.7,
+    holdings: [
+      { symbol: "NVDA", name: "NVIDIA", weight: 7.61 },
+      { symbol: "AAPL", name: "Apple", weight: 6.54 },
+      { symbol: "MSFT", name: "Microsoft", weight: 4.78 },
+      { symbol: "AMZN", name: "Amazon", weight: 3.72 },
+      { symbol: "GOOGL", name: "Alphabet A", weight: 3.18 },
+      { symbol: "AVGO", name: "Broadcom", weight: 2.86 },
+      { symbol: "GOOG", name: "Alphabet C", weight: 2.53 },
+      { symbol: "META", name: "Meta", weight: 2.31 },
+      { symbol: "TSLA", name: "Tesla", weight: 1.66 },
+      { symbol: "BRK.B", name: "Berkshire Hathaway", weight: 1.51 },
+      { symbol: "JPM", name: "JPMorgan", weight: 1.43 },
+      { symbol: "LLY", name: "Eli Lilly", weight: 1.3 },
+      { symbol: "XOM", name: "Exxon Mobil", weight: 1.12 },
+      { symbol: "JNJ", name: "Johnson & Johnson", weight: 1.0 },
+      { symbol: "WMT", name: "Walmart", weight: 0.96 },
+    ],
+  },
+  VGT: {
+    asOf: "Apr 8, 2026",
+    totalHoldings: 316,
+    top10Concentration: 58.4,
+    holdings: [
+      { symbol: "MSFT", name: "Microsoft", weight: 14.35 },
+      { symbol: "NVDA", name: "NVIDIA", weight: 13.92 },
+      { symbol: "AAPL", name: "Apple", weight: 12.88 },
+      { symbol: "AVGO", name: "Broadcom", weight: 5.61 },
+      { symbol: "CRM", name: "Salesforce", weight: 2.39 },
+      { symbol: "ORCL", name: "Oracle", weight: 2.31 },
+      { symbol: "CSCO", name: "Cisco", weight: 2.2 },
+      { symbol: "IBM", name: "IBM", weight: 1.76 },
+      { symbol: "AMD", name: "AMD", weight: 1.63 },
+      { symbol: "ACN", name: "Accenture", weight: 1.35 },
+      { symbol: "INTU", name: "Intuit", weight: 1.27 },
+      { symbol: "ADBE", name: "Adobe", weight: 1.25 },
+      { symbol: "QCOM", name: "Qualcomm", weight: 1.12 },
+      { symbol: "TXN", name: "Texas Instruments", weight: 1.04 },
+      { symbol: "NOW", name: "ServiceNow", weight: 0.96 },
+    ],
+  },
+};
+
 function normalizeSymbol(input) {
   return String(input || "").trim().toUpperCase();
 }
@@ -217,6 +264,51 @@ function parseTheStreetInstitutions(html, config) {
   };
 }
 
+function parseFundConstituentsTable(html, config) {
+  const $ = cheerio.load(html);
+  const pageText = $("body").text().replace(/\s+/g, " ").trim();
+  const totalHoldingsMatch = pageText.match(/total of\s+([0-9,]+)\s+individual holdings/i);
+  const top10Match = pageText.match(/Top 10 Percentage\s+([0-9]+(?:\.[0-9]+)?)%/i);
+  const asOfMatch = pageText.match(/As of\s+([A-Z][a-z]{2}\s+\d{1,2},\s+\d{4})/i);
+
+  const rows = [];
+
+  $("table tbody tr").each((_, row) => {
+    const cells = $(row)
+      .find("td")
+      .map((__, cell) => $(cell).text().replace(/\s+/g, " ").trim())
+      .get();
+
+    if (cells.length >= 5 && /^\d+$/.test(cells[0]) && /%$/.test(cells[3])) {
+      rows.push({
+        symbol: cells[1],
+        name: cells[2],
+        weight: Number(cells[3].replace("%", "")),
+        sharesHeld: cells[4],
+      });
+    }
+  });
+
+  const holdings = rows.slice(0, 15);
+
+  if (holdings.length === 0) {
+    throw new Error("Could not parse ETF holdings table");
+  }
+
+  return {
+    symbol: config.symbol,
+    type: config.type,
+    source: "scraped-web",
+    scrapedAt: new Date().toISOString(),
+    snapshot: {
+      asOf: asOfMatch ? asOfMatch[1] : "Latest fund report",
+      totalHoldings: totalHoldingsMatch ? Number(totalHoldingsMatch[1].replace(/,/g, "")) : holdings.length,
+      top10Concentration: top10Match ? Number(top10Match[1]) : Number(holdings.slice(0, 10).reduce((sum, item) => sum + item.weight, 0).toFixed(2)),
+    },
+    holdings,
+  };
+}
+
 function parseHolders(html, config) {
   if (config.parser === "institutionalArticleListA") {
     return parseMotleyFoolInstitutions(html, config);
@@ -228,6 +320,10 @@ function parseHolders(html, config) {
 
   if (config.parser === "institutionalArticleListC") {
     return parseTheStreetInstitutions(html, config);
+  }
+
+  if (config.parser === "fundConstituentsTable") {
+    return parseFundConstituentsTable(html, config);
   }
 
   throw new Error(`Unsupported holders parser: ${config.parser}`);
@@ -271,6 +367,29 @@ async function scrapeHoldersBySymbol(inputSymbol) {
   } catch (_error) {
     const config = HOLDER_SOURCES[symbol];
     const fallback = FALLBACK_HOLDERS[symbol];
+    const etfFallback = FALLBACK_ETF_HOLDINGS[symbol];
+
+    if (config?.type === "etf" && etfFallback) {
+      const payload = {
+        symbol: config.symbol,
+        type: config.type,
+        source: "snapshot-fallback",
+        scrapedAt: new Date().toISOString(),
+        snapshot: {
+          asOf: etfFallback.asOf,
+          totalHoldings: etfFallback.totalHoldings,
+          top10Concentration: etfFallback.top10Concentration,
+        },
+        holdings: etfFallback.holdings,
+      };
+
+      cache.set(symbol, {
+        timestamp: Date.now(),
+        value: payload,
+      });
+
+      return payload;
+    }
 
     if (!config || !fallback) {
       throw _error;

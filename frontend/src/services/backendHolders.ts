@@ -10,6 +10,13 @@ type BackendHolderEntry = {
   valueThousands: string;
 };
 
+type BackendFundHoldingEntry = {
+  symbol: string;
+  name: string;
+  weight: number;
+  sharesHeld?: string;
+};
+
 type BackendHoldersResponse = {
   symbol: string;
   type: string;
@@ -17,10 +24,12 @@ type BackendHoldersResponse = {
   scrapedAt: string;
   snapshot: {
     asOf: string;
-    totalHolders: number;
+    totalHolders?: number;
+    totalHoldings?: number;
     top10Concentration: number;
   };
-  holders: BackendHolderEntry[];
+  holders?: BackendHolderEntry[];
+  holdings?: BackendFundHoldingEntry[];
 };
 
 const palette = [
@@ -73,17 +82,29 @@ export async function fetchBackendHolders(symbol: string): Promise<HoldingsData>
   }
 
   const data = (await response.json()) as BackendHoldersResponse;
+  const normalizedHoldings =
+    data.holdings?.map((holding) => ({
+      symbol: holding.symbol,
+      name: holding.name,
+      weight: holding.weight,
+    })) ||
+    data.holders?.map((holder) => ({
+      symbol: buildShortSymbol(holder.name),
+      name: holder.name,
+      weight: holder.stake,
+    })) ||
+    [];
 
   return {
     snapshot: {
       asOf: data.snapshot?.asOf || data.holders?.[0]?.reportedDate || "Latest filing",
-      totalHoldings: data.snapshot?.totalHolders || data.holders?.length || 0,
+      totalHoldings: data.snapshot?.totalHoldings || data.snapshot?.totalHolders || normalizedHoldings.length || 0,
       top10Concentration: data.snapshot?.top10Concentration || 0,
     },
-    holdings: (data.holders || []).map((holder, index) => ({
-      symbol: buildShortSymbol(holder.name),
-      name: holder.name,
-      weight: holder.stake,
+    holdings: normalizedHoldings.map((holding, index) => ({
+      symbol: holding.symbol,
+      name: holding.name,
+      weight: holding.weight,
       color: palette[index % palette.length],
     })),
   };

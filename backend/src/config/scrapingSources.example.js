@@ -120,6 +120,20 @@ const HOLDER_SOURCES = {
     url: "https://example.com/path-to-nvda-holders-page",
     parser: "institutionalArticleListC",
   },
+  SPY: {
+    symbol: "SPY",
+    type: "etf",
+    source: "scraped-web",
+    url: "https://example.com/path-to-spy-holdings-page",
+    parser: "fundConstituentsTable",
+  },
+  VGT: {
+    symbol: "VGT",
+    type: "etf",
+    source: "scraped-web",
+    url: "https://example.com/path-to-vgt-holdings-page",
+    parser: "fundConstituentsTable",
+  },
 };
 
 module.exports = {
